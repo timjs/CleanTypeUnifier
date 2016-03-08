@@ -2,7 +2,7 @@ Version: 1.4
 Global
 	ProjectRoot:	.
 	Target:	StdEnv
-	Exec:	{Project}/unifier.exe
+	Exec:	{Project}/unifier
 	CodeGen
 		CheckStacks:	False
 		CheckIndexes:	True
@@ -185,6 +185,20 @@ OtherModules
 			ReuseUniqueNodes:	True
 			Fusion:	False
 	Module
+		Name:	Text
+		Dir:	{Application}/lib/clean-platform/OS-Independent
+		Compiler
+			NeverMemoryProfile:	False
+			NeverTimeProfile:	False
+			StrictnessAnalysis:	True
+			ListTypes:	StrictExportTypes
+			ListAttributes:	True
+			Warnings:	True
+			Verbose:	True
+			ReadableABC:	False
+			ReuseUniqueNodes:	True
+			Fusion:	False
+	Module
 		Name:	GenEq
 		Dir:	{Application}/lib/Generics
 		Compiler
@@ -200,6 +214,34 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	Type
+		Dir:	{Project}
+		Compiler
+			NeverMemoryProfile:	False
+			NeverTimeProfile:	False
+			StrictnessAnalysis:	True
+			ListTypes:	StrictExportTypes
+			ListAttributes:	True
+			Warnings:	True
+			Verbose:	True
+			ReadableABC:	False
+			ReuseUniqueNodes:	True
+			Fusion:	False
+	Module
+		Name:	TypeDef
+		Dir:	{Project}
+		Compiler
+			NeverMemoryProfile:	False
+			NeverTimeProfile:	False
+			StrictnessAnalysis:	True
+			ListTypes:	StrictExportTypes
+			ListAttributes:	True
+			Warnings:	True
+			Verbose:	True
+			ReadableABC:	False
+			ReuseUniqueNodes:	True
+			Fusion:	False
+	Module
+		Name:	TypeUtil
 		Dir:	{Project}
 		Compiler
 			NeverMemoryProfile:	False
