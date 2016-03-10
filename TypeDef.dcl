@@ -6,7 +6,7 @@ from Data.Maybe import :: Maybe
         | List ListKind Type SpineStrictness
         | Tuple [(Strict, Type)]
         | Array ArrayKind Type
-        | Function [Type] Type ClassContext //TODO UnqTypeUnEqualities
+        | Func [Type] Type ClassContext //TODO UnqTypeUnEqualities
         | Var TypeVar
         | Uniq Type
 
@@ -23,4 +23,7 @@ from Data.Maybe import :: Maybe
 
 class unify a :: a a -> Maybe [TypeVarAssignment]
 instance unify Type
+
+assign :: TypeVarAssignment Type -> Type // replace arg1 with arg2 in arg3
+assignAll :: [TypeVarAssignment] Type -> Type
 

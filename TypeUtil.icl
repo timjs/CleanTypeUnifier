@@ -64,9 +64,9 @@ where
     print (Tuple ts) = "(" <+ printersperse "," ts <+ ")"
     print (Array k t) = "{" <+ k <+ t <+ "}"
     print (Var v) = [v]
-    print (Function [] r []) = print r
-    print (Function [] r cc) = r <+ " " <+ cc
-    print (Function ts r []) = printersperse " " ts <+ " -> " <+ r
-    print (Function ts r cc) = (Function ts r []) <+ " " <+ cc
+    print (Func [] r []) = print r
+    print (Func [] r cc) = r <+ " " <+ cc
+    print (Func ts r []) = printersperse " " ts <+ " -> " <+ r
+    print (Func ts r cc) = (Func ts r []) <+ " " <+ cc
     print (Uniq t) = "*" <+ t
 
