@@ -21,6 +21,8 @@ from Data.Maybe import :: Maybe
 :: ClassRestriction :== (ClassOrGeneric, TypeVar)
 :: ClassOrGeneric = Class String | Generic //TODO generic?
 
+class toType a :: a -> Type
+
 class unify a :: a a -> Maybe [TypeVarAssignment]
 instance unify Type
 

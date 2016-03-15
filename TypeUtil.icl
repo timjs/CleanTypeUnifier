@@ -59,6 +59,7 @@ where
 
 instance print Type
 where
+    print (Type s []) = print s
     print (Type s vs) = s <+ " " <+ printersperse " " vs
     print (List k t s) = "[" <+ k <+ t <+ s <+ "]"
     print (Tuple ts) = "(" <+ printersperse "," ts <+ ")"
@@ -66,7 +67,7 @@ where
     print (Var v) = [v]
     print (Func [] r []) = print r
     print (Func [] r cc) = r <+ " " <+ cc
-    print (Func ts r []) = printersperse " " ts <+ " -> " <+ r
+    print (Func ts r []) = "(" <+ printersperse " " ts <+ " -> " <+ r <+ ")"
     print (Func ts r cc) = (Func ts r []) <+ " " <+ cc
     print (Uniq t) = "*" <+ t
 
