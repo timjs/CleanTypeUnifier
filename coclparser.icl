@@ -33,10 +33,10 @@ Start w
 # ((b1,b2,pm,ht,f),w) = accFiles (wantModule` f "" False mod_id.boxed_ident NoPos False ht stderr) w
 # (ok,w) = fclose f w
 # pds = filter (\pd->case pd of (PD_TypeSpec _ _ _ _ _)=True; _=False) pm.mod_defs
-# sts = map (\(PD_TypeSpec pos id prio st funspecs) -> st) pds
-# sts = filter (\st->case st of (Yes _)=True; _=False) sts
-# sts = map (\(Yes x)->x) sts
-= foldl (+++) "" (join "\n" (map (print o toType) sts)) +++ "\n"
+# sts = map (\(PD_TypeSpec pos id prio st funspecs) -> (id.id_name,st)) pds
+# sts = filter (\st->case st of (_,(Yes _))=True; _=False) sts
+# sts = map (\(n,Yes x)->(n,x)) sts
+= foldl (+++) "" (join "\n" (map (\(n,t)->alignl 16 n ++ [":: "] ++ print (toType t)) sts)) +++ "\n"
 
 (<+) infixr 5 :: a b -> [String] | print a & print b
 (<+) a b = print a ++ print b
@@ -45,6 +45,13 @@ join :: a [b] -> [String] | print a & print b
 join _ [] = []
 join a [b:[]] = print b
 join a [b:bs] = b <+ a <+ join a bs
+
+alignl :: Int a -> [String] | print a
+alignl i s
+# s = print s
+# len = sum (map size s)
+| len >= i = s
+| otherwise = s ++ [{' ' \\ i <- [0..i-len]}]
 
 wantModule` :: !*File !{#Char} !Bool !Ident !Position !Bool !*HashTable !*File !*Files
 	-> ((!Bool,!Bool,!ParsedModule, !*HashTable, !*File), !*Files)
