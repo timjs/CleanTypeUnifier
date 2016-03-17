@@ -6,6 +6,7 @@ import CoclUtils
 
 // Standard libraries
 import StdArray, StdFile, StdList, StdMisc, StdString, StdFunc
+import Data.Maybe, Text
 import ArgEnv
 
 // frontend
@@ -35,8 +36,19 @@ Start w
 # pds = filter (\pd->case pd of (PD_TypeSpec _ _ _ _ _)=True; _=False) pm.mod_defs
 # sts = map (\(PD_TypeSpec pos id prio st funspecs) -> (id.id_name,st)) pds
 # sts = filter (\st->case st of (_,(Yes _))=True; _=False) sts
-# sts = map (\(n,Yes x)->(n,x)) sts
-= foldl (+++) "" (join "\n" (map (\(n,t)->alignl 16 n ++ [":: "] ++ print (toType t)) sts)) +++ "\n"
+# sts = map (\(n,Yes x)->(n,toType x)) sts
+//= concat (join "\n" (map (\(n,t)->alignl 16 n <+ ":: " <+ print t) sts)) +++ "\n"
+# ugrps = unigroups sts
+= concat (join "\n" [alignl 32 (concat (print t)) <+ "\t" <+ foldl (\a b.b +++ ", " +++ a) n ns \\ ([n:ns], t) <- ugrps]) +++ "\n"
+
+unigroups :: [(a,Type)] -> [([a],Type)]
+unigroups ts = unigroups` ts []
+where
+    unigroups` [] groups = groups
+    unigroups` [(a,t):ts] [] = unigroups` ts [([a],t)]
+    unigroups` [(a,t):ts] [(ns,ut):groups]
+    | isNothing (unify t ut) = unigroups` ts [(ns,ut):unigroups` [(a,t)] groups]
+    | otherwise = unigroups` ts [([a:ns],ut):groups]
 
 (<+) infixr 5 :: a b -> [String] | print a & print b
 (<+) a b = print a ++ print b

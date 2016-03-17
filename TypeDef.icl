@@ -15,16 +15,27 @@ from GenEq import generic gEq
 
 derive gEq ListKind, SpineStrictness, Strict, ArrayKind, ClassOrGeneric, Type
 
+instance == Type where (==) a b = a === b // needed for removeDup
+
 unifyEq a b :== if (a === b) (Just []) Nothing
 instance unify ArrayKind where unify a b = unifyEq a b
 instance unify ListKind where unify a b = unifyEq a b
 instance unify SpineStrictness where unify a b = unifyEq a b
 instance unify Strict where unify a b = unifyEq a b
 
+instance unify [Type]
+where
+    unify ts1 ts2 = removeDup <$> foldM (\tvas (t1,t2) ->
+            let (t1`,t2`) = (assignAll tvas t1, assignAll tvas t2) in
+            ((++)tvas) <$> unify t1` t2`) [] (zip2 ts1 ts2)
+
 instance unify Type
 where
-    unify a=:(Var a`) b=:(Var b`) = Just [(a`,b), (b`,a)]
+    unify a=:(Var a`) b=:(Var b`) = Just (removeDup [(a`,b), (b`,a)])
     unify (Var a`) b = Just [(a`, b)]
+    unify (Type t1 vs1) (Type t2 vs2)
+    | t1 == t2 = unify (map Var vs1) (map Var vs2)
+    | otherwise = Nothing
     unify (List k1 t1 s1) (List k2 t2 s2)
         = unify k1 k2 >>| unify s1 s2 >>| unify t1 t2
     unify (Tuple ts1) (Tuple ts2)
