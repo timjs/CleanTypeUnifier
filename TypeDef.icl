@@ -25,7 +25,9 @@ instance unify Strict where unify a b = unifyEq a b
 
 instance unify [Type]
 where
-    unify ts1 ts2 = removeDup <$> foldM (\tvas (t1,t2) ->
+    unify ts1 ts2 
+    | length ts1 <> length ts2 = Nothing
+    | otherwise = removeDup <$> foldM (\tvas (t1,t2) ->
             let (t1`,t2`) = (assignAll tvas t1, assignAll tvas t2) in
             ((++)tvas) <$> unify t1` t2`) [] (zip2 ts1 ts2)
 
@@ -34,22 +36,12 @@ where
     unify a=:(Var a`) b=:(Var b`) = Just (removeDup [(a`,b), (b`,a)])
     unify (Var a`) b = Just [(a`, b)]
     unify (Type t1 vs1) (Type t2 vs2)
-    | t1 == t2 = unify (map Var vs1) (map Var vs2)
+    | t1 == t2 = unify vs1 vs2
     | otherwise = Nothing
-    unify (List k1 t1 s1) (List k2 t2 s2)
-        = unify k1 k2 >>| unify s1 s2 >>| unify t1 t2
-    unify (Tuple ts1) (Tuple ts2)
-        | length ts1 <> length ts2 = Nothing
-        = foldM (\tvas ((s1,t1),(s2,t2)) ->
-            let (t1`,t2`) = (assignAll tvas t1, assignAll tvas t2) in
-            ((++)tvas) <$> (unify s1 s2 >>| unify t1` t2`)) [] (zip2 ts1 ts2)
-    unify (Array k1 t1) (Array k2 t2)
-        = unify k1 k2 >>| unify t1 t2
-    unify (Func ts1 r1 cc1) (Func ts2 r2 cc2)
-        | length ts1 <> length ts2 = Nothing
-        = foldM (\tvas (t1,t2) ->
-            let (t1`,t2`) = (assignAll tvas t1, assignAll tvas t2) in
-            ((++)tvas) <$> unify t1` t2`) [] (zip2 [r1:ts1] [r2:ts2]) //TODO unify class context
+    unify (List k1 t1 s1) (List k2 t2 s2) = unify k1 k2 >>| unify s1 s2 >>| unify t1 t2
+    unify (Tuple ts1) (Tuple ts2) = unify (map snd ts1) (map snd ts2) //TODO unify strictness?
+    unify (Array k1 t1) (Array k2 t2) = unify k1 k2 >>| unify t1 t2
+    unify (Func ts1 r1 cc1) (Func ts2 r2 cc2) = unify [r1:ts1] [r2:ts2] //TODO unify class context
     unify (Uniq t1) (Uniq t2) = unify t1 t2
     unify _ _ = Nothing
 

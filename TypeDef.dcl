@@ -1,8 +1,9 @@
 definition module TypeDef
 
+from StdOverloaded import class ==
 from Data.Maybe import :: Maybe
 
-:: Type = Type String [TypeVar]
+:: Type = Type String [Type]
         | List ListKind Type SpineStrictness
         | Tuple [(Strict, Type)]
         | Array ArrayKind Type
@@ -20,6 +21,8 @@ from Data.Maybe import :: Maybe
 :: ClassContext :== [ClassRestriction]
 :: ClassRestriction :== (ClassOrGeneric, TypeVar)
 :: ClassOrGeneric = Class String | Generic //TODO generic?
+
+instance == Type
 
 class toType a :: a -> Type
 

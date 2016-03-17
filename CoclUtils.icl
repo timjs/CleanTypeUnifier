@@ -24,8 +24,7 @@ tsiToType tsi ats
 | name % (0,size name-2) == "_Tuple"
     = 'T'.Tuple [('T'.NotStrict, toType` at.at_type) \\ at <- ats]
 | otherwise // are these really all the cases?
-    = 'T'.Type name (map (\at->case at.at_type of (TV tv)->tv.tv_ident.id_name) ats) // Only type vars in this case?
-    //= 'T'.Var ("TSI: " +++ name)
+    = 'T'.Type name (map (\at->toType` at.at_type) ats)
 where
     name = tsi.type_ident.id_name
 

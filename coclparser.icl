@@ -19,14 +19,19 @@ from general import ::Optional(..)
 from syntax import ::SymbolTable, ::SymbolTableEntry, ::Ident{..}, ::SymbolPtr, ::Position(NoPos), ::Module{mod_defs}, ::ParsedDefinition(PD_TypeSpec), ::FunSpecials, ::Priority, ::ParsedModule, ::SymbolType
 from parse import wantModule
 
-default_mod_id :== "StdList"
+default_lib :== "clean-platform/OS-Independent"
+default_mod_id :== "Data.Func"
+
+mkdir :: String -> String
+mkdir s = toString (map (\c.case c of '.'='/'; c=c) (fromString s))
 
 Start w
 # args = [a \\ a <-: getCommandLine]
 # mod_id = if (length args > 1) (args!!1) default_mod_id
-# filename = "/opt/clean/lib/StdEnv/" +++ mod_id +++ ".dcl"
+# lib = if (length args > 2) (args!!2) default_lib
+# filename = "/opt/clean/lib/" +++ lib +++ "/" +++ mkdir mod_id +++ ".dcl"
 # (ok,f,w) = fopen filename FReadText w
-| not ok = abort ("Couldn't open file " +++ filename +++ "\n")
+| not ok = abort ("Couldn't open file " +++ filename +++ "\nUsage: ./coclparser -b [module [library]]\n")
 # (st, w) = init_identifiers newHeap w
 # cache = empty_cache st
 # (mod_id, ht) = putIdentInHashTable mod_id (IC_Module NoQualifiedIdents) cache.hash_table
@@ -38,17 +43,18 @@ Start w
 # sts = filter (\st->case st of (_,(Yes _))=True; _=False) sts
 # sts = map (\(n,Yes x)->(n,toType x)) sts
 //= concat (join "\n" (map (\(n,t)->alignl 16 n <+ ":: " <+ print t) sts)) +++ "\n"
-# ugrps = unigroups sts
+# ugrps = unigroups (\t u . isJust (unify t u)) sts
+# ugrps = unigroups (==) sts
 = concat (join "\n" [alignl 32 (concat (print t)) <+ "\t" <+ foldl (\a b.b +++ ", " +++ a) n ns \\ ([n:ns], t) <- ugrps]) +++ "\n"
 
-unigroups :: [(a,Type)] -> [([a],Type)]
-unigroups ts = unigroups` ts []
+unigroups :: (Type Type -> Bool) [(a,Type)] -> [([a],Type)]
+unigroups f ts = unigroups` ts []
 where
     unigroups` [] groups = groups
     unigroups` [(a,t):ts] [] = unigroups` ts [([a],t)]
     unigroups` [(a,t):ts] [(ns,ut):groups]
-    | isNothing (unify t ut) = unigroups` ts [(ns,ut):unigroups` [(a,t)] groups]
-    | otherwise = unigroups` ts [([a:ns],ut):groups]
+    | f t ut    = unigroups` ts [([a:ns],ut):groups]
+    | otherwise = unigroups` ts [(ns,ut):unigroups` [(a,t)] groups]
 
 (<+) infixr 5 :: a b -> [String] | print a & print b
 (<+) a b = print a ++ print b

@@ -60,7 +60,7 @@ where
 instance print Type
 where
     print (Type s []) = print s
-    print (Type s vs) = s <+ " " <+ printersperse " " vs
+    print (Type s vs) = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
     print (List k t s) = "[" <+ k <+ t <+ s <+ "]"
     print (Tuple ts) = "(" <+ printersperse "," ts <+ ")"
     print (Array k t) = "{" <+ k <+ t <+ "}"
