@@ -1,11 +1,11 @@
 implementation module TypeUtil
 
 import TypeDef
-import StdList
+
 from Data.Func import $
 import Data.List
 from Text import class Text (concat), instance Text String
-from GenEq import ===
+from GenEq import generic gEq, ===
 
 (<+) infixr 1 :: a b -> [String] | print a & print b
 (<+) a b = print a ++ print b
@@ -69,5 +69,7 @@ where
     print (Func [] r cc) = r <+ " " <+ cc
     print (Func ts r []) = "(" <+ printersperse " " ts <+ " -> " <+ r <+ ")"
     print (Func ts r cc) = (Func ts r []) <+ " " <+ cc
+    print (Cons tv []) = print tv
+    print (Cons tv ats) = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
     print (Uniq t) = "*" <+ t
 

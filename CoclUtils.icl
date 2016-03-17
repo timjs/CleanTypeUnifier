@@ -15,6 +15,7 @@ where
     toType` (TV tv) = 'T'.Var tv.tv_ident.id_name
     toType` (GTV tv) = 'T'.Var tv.tv_ident.id_name
     toType` (t1 --> t2) = 'T'.Func [toType` t1.at_type] (toType` t2.at_type) []
+    toType` ((CV cv) :@: ats) = 'T'.Cons cv.tv_ident.id_name (map (\at->toType` at.at_type) ats)
     toType` _ = 'T'.Var "UNIMPL" //TODO
         
 tsiToType :: TypeSymbIdent [AType] -> 'T'.Type

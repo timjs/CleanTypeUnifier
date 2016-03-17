@@ -3,13 +3,14 @@ definition module TypeDef
 from StdOverloaded import class ==
 from Data.Maybe import :: Maybe
 
-:: Type = Type String [Type]
-        | List ListKind Type SpineStrictness
-        | Tuple [(Strict, Type)]
-        | Array ArrayKind Type
-        | Func [Type] Type ClassContext //TODO UnqTypeUnEqualities
-        | Var TypeVar
-        | Uniq Type
+:: Type = Type String [Type]             // Concrete type + arguments
+        | List ListKind Type SpineStrictness // List
+        | Tuple [(Strict, Type)]         // Tuple
+        | Array ArrayKind Type           // Array
+        | Func [Type] Type ClassContext  // Function; TODO UnqTypeUnEqualities
+        | Var TypeVar                    // Type variable
+        | Cons TypeVar [Type]            // Constructor variable + arguments
+        | Uniq Type                      // Unique type
 
 :: TypeVar :== String
 :: TypeVarAssignment :== (TypeVar, Type)
@@ -25,10 +26,4 @@ from Data.Maybe import :: Maybe
 instance == Type
 
 class toType a :: a -> Type
-
-class unify a :: a a -> Maybe [TypeVarAssignment]
-instance unify Type
-
-assign :: TypeVarAssignment Type -> Type // replace arg1 with arg2 in arg3
-assignAll :: [TypeVarAssignment] Type -> Type
 

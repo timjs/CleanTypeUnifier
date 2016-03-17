@@ -36,7 +36,7 @@ Start w
 # cache = empty_cache st
 # (mod_id, ht) = putIdentInHashTable mod_id (IC_Module NoQualifiedIdents) cache.hash_table
   cache = {cache & hash_table=ht}
-# ((b1,b2,pm,ht,f),w) = accFiles (wantModule` f "" False mod_id.boxed_ident NoPos False ht stderr) w
+# ((b1,b2,pm,ht,f),w) = accFiles (wantModule` f "" False mod_id.boxed_ident NoPos True ht stderr) w
 # (ok,w) = fclose f w
 # pds = filter (\pd->case pd of (PD_TypeSpec _ _ _ _ _)=True; _=False) pm.mod_defs
 # sts = map (\(PD_TypeSpec pos id prio st funspecs) -> (id.id_name,st)) pds

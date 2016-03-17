@@ -9,5 +9,6 @@ Clean System Files/
 *-data/
 sapl/
 
-unifier
+builddb
 coclparser
+unifier

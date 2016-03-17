@@ -9,8 +9,16 @@ list a :== List NormalList a NormalSpine
 filtertype = Func [Func [a] (Type "Bool" []) [], list a] (list a) []
 functype = Func [Type "Bool" []] (a) []
 
+constype = Cons "t" [Var "a", Type "Bool" []]
+constype` = Cons "u" [Type "Int" [], Var "a"]
+
+fmapDefaultType = Func [Func [Var "a"] (Var "b") [], Cons "t" [Var "a"]] (Cons "t" [Var "b"]) []
+foldMapDefaultType = Func [Func [Var "a"] (Var "m") [], Cons "t" [Var "a"]] (Var "m") []
+
+//Start = unify fmapDefaultType foldMapDefaultType
+Start = unify constype constype`
 //Start = assignAll [("a",Var "X")] (filtertype)
-Start = unify filtertype filtertype
+//Start = unify filtertype filtertype
 //Start = unify (List NormalList (Var "a") NormalSpine) (Var "a")
 //Start = unify (List NormalList (Var "x") NormalSpine) (List NormalList (Type "Y" ["a"]) NormalSpine)
 //Start = unify (Tuple [(Strict,Var "a"),(Strict,Var "a")]) (Tuple [(Strict,Type "Int" []),(Strict,Type "Real" [])])

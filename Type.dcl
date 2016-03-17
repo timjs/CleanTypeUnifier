@@ -1,4 +1,4 @@
 definition module Type
 
-import TypeDef, TypeUtil, TypeParse
+import TypeDef, TypeUnify, TypeUtil, TypeParse
 
