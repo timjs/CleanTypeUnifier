@@ -12,10 +12,11 @@ Unfortunately, the git repository of the clean-compiler misses the general Makef
 
     $ cd clean-compiler/main/Unix
     $ make
-    $ cd ../../backendC/CleanCompilerSource
+    $ cd ../../backendC/CleanCompilerSources
     $ make -f Makefile.linux64
     $ cd ../..
-    $ ln -s backendC/CleanCompilerSources/backend.a backend/Clean\ System\ Files/backend_library
+    $ mkdir backend/Clean\ System\ Files
+    $ ln -s ../../backendC/CleanCompilerSources/backend.a backend/Clean\ System\ Files/backend_library
 
 After this we should be able to build the projects from the root directory:
 
