@@ -39,11 +39,11 @@ Global
 		ExportedNames:	
 	Paths
 		Path:	{Application}/lib/StdLib/
-		Path:	/home/camil/VersionControl/clean-compiler/branches/itask/backend
-		Path:	/home/camil/VersionControl/clean-compiler/branches/itask/main/Unix/
+		Path:	{Project}/clean-compiler/backend
+		Path:	{Project}/clean-compiler/main/Unix/
 		Path:	{Application}/lib/ArgEnv/
-		Path:	/home/camil/VersionControl/clean-compiler/branches/itask/main/
-		Path:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Path:	{Project}/clean-compiler/main/
+		Path:	{Project}/clean-compiler/frontend/
 		Path:	{Application}/lib/clean-platform/OS-Independent
 		Path:	{Application}/lib/clean-platform/OS-Posix
 		Path:	{Application}/lib/clean-platform/OS-Linux
@@ -68,22 +68,8 @@ MainModule
 		Fusion:	False
 OtherModules
 	Module
-		Name:	StdMaybe
-		Dir:	{Application}/lib/StdLib/
-		Compiler
-			NeverMemoryProfile:	False
-			NeverTimeProfile:	False
-			StrictnessAnalysis:	True
-			ListTypes:	StrictExportTypes
-			ListAttributes:	True
-			Warnings:	True
-			Verbose:	True
-			ReadableABC:	False
-			ReuseUniqueNodes:	True
-			Fusion:	False
-	Module
 		Name:	backend
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/backend
+		Dir:	{Project}/clean-compiler/backend
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -97,7 +83,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	backendconvert
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/backend
+		Dir:	{Project}/clean-compiler/backend
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -113,7 +99,7 @@ OtherModules
 			Library:	backend_library
 	Module
 		Name:	backendinterface
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/backend
+		Dir:	{Project}/clean-compiler/backend
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -127,7 +113,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	backendpreprocess
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/backend
+		Dir:	{Project}/clean-compiler/backend
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -141,7 +127,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	backendsupport
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/backend
+		Dir:	{Project}/clean-compiler/backend
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -155,7 +141,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	CoclSystemDependent
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/main/Unix/
+		Dir:	{Project}/clean-compiler/main/Unix/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -172,7 +158,7 @@ OtherModules
 			ObjectFile:	cDirectory.o
 	Module
 		Name:	ipc
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/main/Unix/
+		Dir:	{Project}/clean-compiler/main/Unix/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -202,7 +188,7 @@ OtherModules
 			ObjectFile:	ArgEnvC.o
 	Module
 		Name:	Version
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/main/
+		Dir:	{Project}/clean-compiler/main/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -216,7 +202,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	compile
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/main/
+		Dir:	{Project}/clean-compiler/main/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -230,7 +216,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	filesystem
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/main/
+		Dir:	{Project}/clean-compiler/main/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -244,7 +230,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	Heap
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -258,7 +244,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	IndexType
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -272,7 +258,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	_aconcat
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -286,7 +272,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	analtypes
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -300,7 +286,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	analunitypes
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -314,7 +300,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	check
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -328,7 +314,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	checkFunctionBodies
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -342,7 +328,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	checkgenerics
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -356,7 +342,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	checksupport
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -370,7 +356,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	checktypes
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -384,7 +370,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	classify
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -398,7 +384,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	compare_constructor
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -412,7 +398,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	compare_types
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -426,7 +412,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	comparedefimp
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -440,7 +426,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	compilerSwitches
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -454,7 +440,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	containers
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -468,7 +454,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	convertDynamics
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -482,7 +468,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	convertcases
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -496,7 +482,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	convertimportedtypes
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -510,7 +496,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	expand_types
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -524,7 +510,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	explicitimports
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -538,7 +524,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	frontend
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -552,7 +538,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	general
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -566,7 +552,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	generics1
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -580,21 +566,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	genericsupport
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
-		Compiler
-			NeverMemoryProfile:	False
-			NeverTimeProfile:	False
-			StrictnessAnalysis:	True
-			ListTypes:	StrictExportTypes
-			ListAttributes:	True
-			Warnings:	True
-			Verbose:	True
-			ReadableABC:	False
-			ReuseUniqueNodes:	True
-			Fusion:	False
-	Module
-		Name:	gensapl
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -608,7 +580,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	hashtable
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -622,7 +594,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	mergecases
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -636,7 +608,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	overloading
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -650,7 +622,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	parse
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -664,7 +636,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	partition
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -678,7 +650,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	postparse
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -692,7 +664,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	predef
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -706,21 +678,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	refmark
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
-		Compiler
-			NeverMemoryProfile:	False
-			NeverTimeProfile:	False
-			StrictnessAnalysis:	True
-			ListTypes:	StrictExportTypes
-			ListAttributes:	True
-			Warnings:	True
-			Verbose:	True
-			ReadableABC:	False
-			ReuseUniqueNodes:	True
-			Fusion:	False
-	Module
-		Name:	saplinterface
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -734,7 +692,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	scanner
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -748,7 +706,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	syntax
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -762,7 +720,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	trans
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -776,7 +734,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	transform
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -790,7 +748,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	type
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -804,7 +762,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	type_io
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -818,7 +776,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	type_io_common
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -832,7 +790,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	typeproperties
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -846,7 +804,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	typereify
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -860,7 +818,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	typesupport
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -874,7 +832,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	unitype
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
@@ -888,7 +846,7 @@ OtherModules
 			Fusion:	False
 	Module
 		Name:	utilities
-		Dir:	/home/camil/VersionControl/clean-compiler/branches/itask/frontend/
+		Dir:	{Project}/clean-compiler/frontend/
 		Compiler
 			NeverMemoryProfile:	False
 			NeverTimeProfile:	False
