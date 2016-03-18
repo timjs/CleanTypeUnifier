@@ -8,7 +8,3 @@ Clean System Files/
 # iTasks environment extra data
 *-data/
 sapl/
-
-builddb
-coclparser
-unifier
