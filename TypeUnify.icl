@@ -15,33 +15,38 @@ import Control.Monad
 derive gEq ListKind, SpineStrictness, Strict, ArrayKind, ClassOrGeneric, Type
 
 unifyEq a b :== if (a === b) (Just ([],[])) Nothing
-instance unify ArrayKind where unify a b = unifyEq a b
-instance unify ListKind where unify a b = unifyEq a b
-instance unify SpineStrictness where unify a b = unifyEq a b
-instance unify Strict where unify a b = unifyEq a b
+instance unify ArrayKind where unify _ a b = unifyEq a b
+instance unify ListKind where unify _ a b = unifyEq a b
+instance unify SpineStrictness where unify _ a b = unifyEq a b
+instance unify Strict where unify _ a b = unifyEq a b
 
 instance unify [Type]
 where
-    unify ts1 ts2 
+    unify is ts1 ts2 
     | length ts1 <> length ts2 = Nothing
     | otherwise = apptuple removeDup <$> foldM (\(as1,as2) (t1,t2) ->
         let (t1`,t2`) = (assignAll as1 t1, assignAll as2 t2) in
-          (\(a,b)->(a++as1, b++as2)) <$> unify t1` t2`) ([],[]) (zip2 ts1 ts2)
+          (\(a,b)->(a++as1, b++as2)) <$> unify is t1` t2`) ([],[]) (zip2 ts1 ts2)
 
 instance unify Type
 where
-    unify a=:(Var a`) b=:(Var b`) = Just ([(a`,b)], [(b`,a)]) >>= sane
-    unify (Var a) b = Just ([(a, b)],[]) >>= sane
-    unify a (Var b) = Just ([],[(b, a)]) >>= sane
-    unify (Type t1 vs1) (Type t2 vs2) = if (t1==t2) (unify vs1 vs2 >>= sane) Nothing
-    unify (List k1 t1 s1) (List k2 t2 s2)
-        = unify k1 k2 >>| unify s1 s2 >>| unify t1 t2 >>= sane
-    unify (Tuple ts1) (Tuple ts2) = unify (map snd ts1) (map snd ts2) >>= sane//TODO unify strictness?
-    unify (Array k1 t1) (Array k2 t2) = unify k1 k2 >>| unify t1 t2 >>= sane
-    unify (Func ts1 r1 cc1) (Func ts2 r2 cc2) = unify [r1:ts1] [r2:ts2] >>= sane //TODO unify class context
-    unify (Uniq t1) (Uniq t2) = unify t1 t2 >>= sane
-    unify (Cons c1 ts1) (Cons c2 ts2) = unify [Var c1:ts1] [Var c2:ts2] >>= sane
-    unify _ _ = Nothing
+    unify _ a=:(Var a`) b=:(Var b`) = Just ([(a`,b)], [(b`,a)]) >>= sane
+    unify _ (Var a) b = Just ([(a, b)],[]) >>= sane
+    unify _ a (Var b) = Just ([],[(b, a)]) >>= sane
+    unify is (Type t1 vs1) (Type t2 vs2)
+        = if (t1==t2) (unify is vs1 vs2 >>= sane) Nothing
+    unify is (List k1 t1 s1) (List k2 t2 s2)
+        = unify is k1 k2 >>| unify is s1 s2 >>| unify is t1 t2 >>= sane
+    unify is (Tuple ts1) (Tuple ts2)
+        = unify is (map snd ts1) (map snd ts2) >>= sane//TODO unify strictness?
+    unify is (Array k1 t1) (Array k2 t2)
+        = unify is k1 k2 >>| unify is t1 t2 >>= sane
+    unify is (Func ts1 r1 cc1) (Func ts2 r2 cc2)
+        = unify is [r1:ts1] [r2:ts2] >>= sane //TODO unify class context
+    unify is (Uniq t1) (Uniq t2) = unify is t1 t2 >>= sane
+    unify is (Cons c1 ts1) (Cons c2 ts2)
+        = unify is [Var c1:ts1] [Var c2:ts2] >>= sane
+    unify _ _ _ = Nothing
 
 //-----------------------//
 // Unification utilities //
@@ -76,7 +81,8 @@ allVars (Uniq t) = allVars t
 //  - No recursive assignments
 //  - TODO no duplicate assignments?
 //  - TODO more?
-sane :: ([TypeVarAssignment],[TypeVarAssignment]) -> Maybe ([TypeVarAssignment],[TypeVarAssignment])
+sane :: ([TypeVarAssignment],[TypeVarAssignment])
+        -> Maybe ([TypeVarAssignment],[TypeVarAssignment])
 sane (as1,as2)
 | not $ and $ map noRecursiveAssignments $ as1++as2 = Nothing
 // more?
@@ -84,6 +90,20 @@ sane (as1,as2)
 where
     noRecursiveAssignments :: TypeVarAssignment -> Bool
     noRecursiveAssignments (tv,t) = not $ isMember tv $ allVars t
+
+saneCC :: ClassContext [Instance] ([TypeVarAssignment],[TypeVarAssignment])
+          -> Maybe ([TypeVarAssignment],[TypeVarAssignment])
+saneCC [] _ ass = Just ass
+saneCC [cc:ccs] is (as1,as2)
+| saneCC` cc is as1 = saneCC ccs is (as1,as2)
+| otherwise = Nothing
+where
+    saneCC` :: ClassRestriction [Instance] [TypeVarAssignment] -> Bool
+    saneCC` (Class c, tv) is as1
+    # ts = map snd $ filter ((==) tv o fst) as1
+    | isEmpty ts = True
+    | otherwise = not $ isEmpty $ filter ((==)(Instance c (hd ts))) is
+    saneCC` _ _ _ = False // TODO saneCC` for generics not implemented
 
 //-------------------//
 // General utilities //

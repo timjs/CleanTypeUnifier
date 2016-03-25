@@ -1,7 +1,7 @@
 implementation module CoclUtils
 
 import qualified Type as T
-from Type import class toType
+from Type import class toType, class toTypeVar
 
 import syntax
 
@@ -32,4 +32,6 @@ instance toType SymbolType
 where
     toType {st_args,st_result}
         = 'T'.Func (map (\at->'T'.toType at.at_type) st_args) ('T'.toType st_result.at_type) []
+
+instance toTypeVar TypeVar where toTypeVar {tv_ident} = tv_ident.id_name
 

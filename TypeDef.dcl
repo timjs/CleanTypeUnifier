@@ -22,8 +22,10 @@ from Data.Maybe import :: Maybe
 :: ClassContext :== [ClassRestriction]
 :: ClassRestriction :== (ClassOrGeneric, TypeVar)
 :: ClassOrGeneric = Class String | Generic //TODO generic?
+:: Instance = Instance String Type
 
-instance == Type
+instance == Type, Instance
 
 class toType a :: a -> Type
+class toTypeVar a :: a -> TypeVar
 
