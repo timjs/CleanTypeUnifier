@@ -1,10 +1,14 @@
 implementation module TypeUnify
 
-import TypeDef
+import TypeDef, TypeUtil
 
 from StdFunc import o, flip
+from StdMisc import abort
+import StdBool
+import StdList
 import StdString
 import StdTuple
+import StdArray
 from Data.Func import $
 import Data.Functor
 import Data.List
@@ -12,98 +16,124 @@ import Data.Maybe
 import Control.Applicative
 import Control.Monad
 
-derive gEq ListKind, SpineStrictness, Strict, ArrayKind, ClassOrGeneric, Type
+derive gEq ClassOrGeneric, Type
 
-unifyEq a b :== if (a === b) (Just ([],[])) Nothing
-instance unify ArrayKind where unify _ a b = unifyEq a b
-instance unify ListKind where unify _ a b = unifyEq a b
-instance unify SpineStrictness where unify _ a b = unifyEq a b
-instance unify Strict where unify _ a b = unifyEq a b
+:: Equation :== (Type, Type)
 
-instance unify [Type]
+// This is an example of why you should give your functions a meaningful name.
+// This is an instance of 'Algorithm 1', described by Martelli, Montanari in
+// An Efficient Unification Algorithm, 1982, section 2. This implementation
+// selects the first from the list of equations, applies the appropriate step
+// (a through d) or proceeds to the next equation.
+alg1 :: [Equation] -> Maybe [TVAssignment]
+alg1 [] = Just []
+alg1 [eq=:(t1,t2):es]
+| t1 == t2 = alg1 es
+| otherwise = case (isVar t1, isVar t2) of
+    (True, _) -> if (isMember (fromVar t1) (allVars t2)) Nothing
+        (if (isMember (fromVar t1) (flatten $ map allVars $ types es))
+            (case eliminate eq es of Nothing -> Nothing;
+                                     (Just es`) -> alg1 [eq:es`])
+            (case alg1 es of Nothing -> Nothing;
+                             (Just tvas) -> Just [(fromVar t1, t2):tvas]))
+    (False, True)  -> alg1 [(t2,t1):es]
+    (False, False) -> case reduct eq of Nothing    -> Nothing
+                                        (Just es`) -> alg1 $ es` ++ es
 where
-    unify is ts1 ts2 
-    | length ts1 <> length ts2 = Nothing
-    | otherwise = apptuple removeDup <$> foldM (\(as1,as2) (t1,t2) ->
-        let (t1`,t2`) = (assignAll as1 t1, assignAll as2 t2) in
-          (\(a,b)->(a++as1, b++as2)) <$> unify is t1` t2`) ([],[]) (zip2 ts1 ts2)
+    types :: [Equation] -> [Type]
+    types [] = []
+    types [(t1,t2):es] = [t1,t2:types es]
+
+    reduct :: Equation -> Maybe [Equation]
+    reduct (Type t1 tvs1, Type t2 tvs2)
+        | t1 <> t2 = Nothing
+        | length tvs1 <> length tvs2 = Nothing
+        | otherwise = Just $ zip2 tvs1 tvs2
+    reduct (Func is1 r1 cc1, Func is2 r2 cc2)        //TODO class context
+        | length is1 <> length is2 = Nothing
+        | otherwise = Just $ zip2 [r1:is1] [r2:is2]
+    reduct (Cons v1 ts1, Cons v2 ts2)
+        // In this case, we apply term reduction on variable root function
+        // symbols. We need to check that these symbols don't occur elsewhere
+        // with different arity (as Cons *or* Var); otherwise we're good.
+        | badArity v1 ts1 || badArity v2 ts2 = Nothing
+        | otherwise = Just $ zip2 [Var v1:ts1] [Var v2:ts2]
+        where
+            badArity v ts
+            | isEmpty arities = False
+            | length (removeDup arities) > 1 = True
+            | otherwise = hd arities <> length ts
+            where
+                arities = let subts = flatten $ map subtypes $ ts1++ts2 in
+                    map arity $ filter (\t -> isCons` v t || t == Var v) subts
+    reduct (Uniq t1, Uniq t2) = Just [(t1,t2)]
+    reduct (Var v1, Var v2) = abort "Cannot reduct variables\n"
+    reduct _ = Nothing
+    
+    eliminate :: Equation [Equation] -> Maybe [Equation]
+    eliminate _ [] = Just []
+    eliminate (Var v, t) [(lft,rgt):es]
+        # (mbLft, mbRgt) = (assign (v,t) lft, assign (v,t) rgt)
+        # mbEqs = eliminate (Var v, t) es
+        | isNothing mbEqs || isNothing mbLft || isNothing mbRgt = Nothing
+        = Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
+
 
 instance unify Type
 where
-    unify _ a=:(Var a`) b=:(Var b`) = Just ([(a`,b)], [(b`,a)]) >>= sane
-    unify _ (Var a) b = Just ([(a, b)],[]) >>= sane
-    unify _ a (Var b) = Just ([],[(b, a)]) >>= sane
-    unify is (Type t1 vs1) (Type t2 vs2)
-        = if (t1==t2) (unify is vs1 vs2 >>= sane) Nothing
-    unify is (List k1 t1 s1) (List k2 t2 s2)
-        = unify is k1 k2 >>| unify is s1 s2 >>| unify is t1 t2 >>= sane
-    unify is (Tuple ts1) (Tuple ts2)
-        = unify is (map snd ts1) (map snd ts2) >>= sane//TODO unify strictness?
-    unify is (Array k1 t1) (Array k2 t2)
-        = unify is k1 k2 >>| unify is t1 t2 >>= sane
-    unify is (Func ts1 r1 cc1) (Func ts2 r2 cc2)
-        = unify is [r1:ts1] [r2:ts2] >>= sane //TODO unify class context
-    unify is (Uniq t1) (Uniq t2) = unify is t1 t2 >>= sane
-    unify is (Cons c1 ts1) (Cons c2 ts2)
-        = unify is [Var c1:ts1] [Var c2:ts2] >>= sane
-    unify _ _ _ = Nothing
+    // This is basically a wrapper for alg1 above. However, here, type
+    // variables with the same name in the first and second type should not be
+    // considered equal (which is what happens in alg1). Therefore, we first
+    // rename all type (constructor) variables to *_1 and *_2, call alg1, and
+    // rename them back.
+    unify is t1 t2 //TODO instances ignored; class context not considered
+    # (t1, t2) = (appendToVars "_1" t1, appendToVars "_2" t2)
+    # mbTvs = alg1 [(t1, t2)]
+    | isNothing mbTvs = Nothing
+    # tvs = fromJust mbTvs
+    # (tvs1, tvs2) = (filter (endsWith "_1") tvs, filter (endsWith "_2") tvs)
+    # (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
+    = Just (tvs1, tvs2)
+    where
+        appendToVars :: String Type -> Type
+        appendToVars s t = fromJust $ assignAll (map rename $ allVars t) t
+        where rename v = (v, Var (v+++s))
+
+        endsWith :: String TVAssignment -> Bool
+        endsWith n (h,_) = h % (size h - size n, size h - 1) == n
+
+        removeEnds :: TVAssignment -> TVAssignment
+        removeEnds (v,t) = let rm s = s % (0, size s - 3) in (rm v, fromJust $ 
+                            assignAll (map (\v->(v,Var (rm v))) $ allVars t) t)
 
 //-----------------------//
 // Unification utilities //
 //-----------------------//
 
-// Apply a TypeVarAssignment to a Type
-assign :: TypeVarAssignment Type -> Type
-assign (v,a) (Var v`) = if (v == v`) a (Var v`)
-assign va (List k t s) = List k (assign va t) s
-assign va (Tuple ts) = Tuple (map (\(s,t)->(s,assign va t)) ts)
-assign va (Array k t) = Array k (assign va t)
-assign va (Func ts r cc) = Func (map (assign va) ts) (assign va r) cc
-assign va (Uniq t) = Uniq (assign va t)
-assign _ t = t
+// Apply a TVAssignment to a Type
+assign :: TVAssignment Type -> Maybe Type
+assign va (Type s ts) = Type s <$^> map (assign va) ts
+assign va (Func ts r cc) = Func <$^> map (assign va) ts 
+        >>= (\f->f <$> assign va r) >>= (\f->pure $ f cc)
+assign (v,a) (Var v`) = Just $ if (v == v`) a (Var v`)
+assign va=:(v,Type s ts) (Cons v` ts`)
+    | v == v`   = Type s <$^> map (assign va) (ts ++ ts`)
+    | otherwise = Cons v` <$^> map (assign va) ts`
+assign va=:(v,Cons c ts) (Cons v` ts`)
+    | v == v`   = Cons c <$^> map (assign va) (ts ++ ts`)
+    | otherwise = Cons v` <$^> map (assign va) ts`
+assign va=:(v,Var v`) (Cons v`` ts)
+    | v == v``  = Cons v` <$^> map (assign va) ts
+    | otherwise = Cons v`` <$^> map (assign va) ts
+assign _ (Cons _ _) = Nothing
+assign va (Uniq t) = Uniq <$> (assign va t)
 
-// Apply a list of TypeVarAssignments in the same manner as assign to a Type
-assignAll :: ([TypeVarAssignment] Type -> Type)
-assignAll = flip $ foldr assign
+(<$^>) infixl 4 :: ([a] -> b) [Maybe a] -> Maybe b
+(<$^>) f mbs = if (all isJust mbs) (Just $ f $ map fromJust mbs) Nothing
 
-// All the type and constructor variables in a type
-allVars :: Type -> [TypeVar]
-allVars (Var a) = [a]
-allVars (Cons c ts) = removeDup [c:flatten $ map allVars ts]
-allVars (Type _ ts) = removeDup $ flatten $ map allVars ts
-allVars (List _ t _) = allVars t
-allVars (Tuple ts) = removeDup $ flatten $ map (allVars o snd) ts
-allVars (Array _ t) = allVars t
-allVars (Func ts r _) = removeDup $ flatten $ map allVars [r:ts]
-allVars (Uniq t) = allVars t
-
-// Pass-through if the TypeVarAssignments are sane, i.e.:
-//  - No recursive assignments
-//  - TODO no duplicate assignments?
-//  - TODO more?
-sane :: ([TypeVarAssignment],[TypeVarAssignment])
-        -> Maybe ([TypeVarAssignment],[TypeVarAssignment])
-sane (as1,as2)
-| not $ and $ map noRecursiveAssignments $ as1++as2 = Nothing
-// more?
-| otherwise = Just (as1,as2)
-where
-    noRecursiveAssignments :: TypeVarAssignment -> Bool
-    noRecursiveAssignments (tv,t) = not $ isMember tv $ allVars t
-
-saneCC :: ClassContext [Instance] ([TypeVarAssignment],[TypeVarAssignment])
-          -> Maybe ([TypeVarAssignment],[TypeVarAssignment])
-saneCC [] _ ass = Just ass
-saneCC [cc:ccs] is (as1,as2)
-| saneCC` cc is as1 = saneCC ccs is (as1,as2)
-| otherwise = Nothing
-where
-    saneCC` :: ClassRestriction [Instance] [TypeVarAssignment] -> Bool
-    saneCC` (Class c, tv) is as1
-    # ts = map snd $ filter ((==) tv o fst) as1
-    | isEmpty ts = True
-    | otherwise = not $ isEmpty $ filter ((==)(Instance c (hd ts))) is
-    saneCC` _ _ _ = False // TODO saneCC` for generics not implemented
+// Apply a list of TVAssignments in the same manner as assign to a Type
+assignAll :: ([TVAssignment] Type -> Maybe Type)
+assignAll = flip $ foldM (flip assign)
 
 //-------------------//
 // General utilities //

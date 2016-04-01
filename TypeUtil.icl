@@ -17,28 +17,6 @@ instance print String where print s = [s]
 
 instance print [a] | print a where print xs = [concat e \\ e <- map print xs]
 
-instance print ListKind
-where
-    print HeadStrict = ["!"]
-    print HeadStrictUnboxed = ["#"]
-    print NormalList = []
-
-instance print SpineStrictness
-where
-    print SpineStrict = ["!"]
-    print NormalSpine = []
-
-instance print Strict
-where
-    print Strict = ["!"]
-    print NotStrict = []
-
-instance print ArrayKind
-where
-    print ArrayStrict = ["!"]
-    print ArrayUnboxed = ["#"]
-    print NormalArray = []
-
 instance print ClassOrGeneric
 where
     print (Class s) = [s]
@@ -53,17 +31,10 @@ where
     print [] = []
     print crs = "| " <+ printersperse " & " crs
 
-instance print (Strict, Type)
-where
-    print (s,t) = [concat (s <+ t)]
-
 instance print Type
 where
     print (Type s []) = print s
     print (Type s vs) = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
-    print (List k t s) = "[" <+ k <+ t <+ s <+ "]"
-    print (Tuple ts) = "(" <+ printersperse "," ts <+ ")"
-    print (Array k t) = "{" <+ k <+ t <+ "}"
     print (Var v) = [v]
     print (Func [] r []) = print r
     print (Func [] r cc) = r <+ " " <+ cc

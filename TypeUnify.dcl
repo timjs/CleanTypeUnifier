@@ -2,8 +2,8 @@ definition module TypeUnify
 
 import TypeDef
 
-from Data.Maybe import :: Maybe
+from Data.Maybe import ::Maybe
 
-class unify a :: [Instance] a a -> Maybe ([TypeVarAssignment], [TypeVarAssignment])
+class unify a :: [Instance] a a -> Maybe ([TVAssignment], [TVAssignment])
 instance unify Type
 
