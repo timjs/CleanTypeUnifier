@@ -30,19 +30,15 @@ alg1 [] = Just []
 alg1 [eq=:(t1,t2):es]
 | t1 == t2 = alg1 es
 | otherwise = case (isVar t1, isVar t2) of
-    (True, _) -> if (isMember (fromVar t1) (allVars t2)) Nothing
-        (if (isMember (fromVar t1) (flatten $ map allVars $ types es))
-            (case eliminate eq es of Nothing -> Nothing;
-                                     (Just es`) -> alg1 [eq:es`])
-            (case alg1 es of Nothing -> Nothing;
-                             (Just tvas) -> Just [(fromVar t1, t2):tvas]))
+    (True, _) -> if (isMember (fromVar t1) $ allVars t2) Nothing
+        (if (isMember (fromVar t1) $ flatten $ map allVars $ types es)
+            (eliminate eq es >>= \es` -> alg1 [eq:es`])
+            ((\tvas -> [(fromVar t1, t2):tvas]) <$> alg1 es))
     (False, True)  -> alg1 [(t2,t1):es]
-    (False, False) -> case reduct eq of Nothing    -> Nothing
-                                        (Just es`) -> alg1 $ es` ++ es
+    (False, False) -> reduct eq >>= \es` -> alg1 $ es` ++ es
 where
-    types :: [Equation] -> [Type]
-    types [] = []
-    types [(t1,t2):es] = [t1,t2:types es]
+    types :: ([Equation] -> [Type])
+    types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
 
     reduct :: Equation -> Maybe [Equation]
     reduct (Type t1 tvs1, Type t2 tvs2)
@@ -129,17 +125,12 @@ assign _ (Cons _ _) = Nothing
 assign va (Uniq t) = Uniq <$> (assign va t)
 
 (<$^>) infixl 4 :: ([a] -> b) [Maybe a] -> Maybe b
-(<$^>) f mbs = if (all isJust mbs) (Just $ f $ map fromJust mbs) Nothing
+(<$^>) f mbs = ifM (all isJust mbs) $ f $ map fromJust mbs
+
+//ifM :: Bool a -> m a | Alternative m
+ifM b x :== if b (pure x) empty
 
 // Apply a list of TVAssignments in the same manner as assign to a Type
 assignAll :: ([TVAssignment] Type -> Maybe Type)
 assignAll = flip $ foldM (flip assign)
-
-//-------------------//
-// General utilities //
-//-------------------//
-
-// Apply a function to a tuple with elements of the same type
-apptuple :: (a -> b) (a,a) -> (b,b)
-apptuple f (x, y) = (f x, f y)
 
