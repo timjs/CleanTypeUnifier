@@ -2,6 +2,7 @@ implementation module TypeUtil
 
 import TypeDef
 
+import StdString
 from Data.Func import $
 import Data.List
 from Text import class Text (concat), instance Text String
@@ -33,8 +34,15 @@ where
 
 instance print Type
 where
-    print (Type s []) = print s
-    print (Type s vs) = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
+    print (Type s []) = if (s == "_String") ["String"] (print s)
+    print (Type s vs)
+    | s == "_List" = "[" <+ vs <+ "]"
+    | s == "_String" = ["String"]
+    | s == "_#Array"
+        | vs == [Type "Char" []] = ["String"]
+        | otherwise = "{#" <+ vs <+ "}"
+    | s % (0,6) == "_Tuple" = "(" <+ vs <+ ")"
+    | otherwise = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
     print (Var v) = [v]
     print (Func [] r []) = print r
     print (Func [] r cc) = r <+ " " <+ cc
