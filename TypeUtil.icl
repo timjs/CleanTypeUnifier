@@ -41,7 +41,7 @@ where
     | s == "_#Array"
         | vs == [Type "Char" []] = ["String"]
         | otherwise = "{#" <+ vs <+ "}"
-    | s % (0,6) == "_Tuple" = "(" <+ vs <+ ")"
+    | s % (0,5) == "_Tuple" = "(" <+ printersperse ", " vs <+ ")"
     | otherwise = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
     print (Var v) = [v]
     print (Func [] r []) = print r
