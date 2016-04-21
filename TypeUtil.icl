@@ -20,35 +20,35 @@ instance print [a] | print a where print xs = [concat e \\ e <- map print xs]
 
 instance print ClassOrGeneric
 where
-    print (Class s) = [s]
-    //TODO generic?
+	print (Class s) = [s]
+	//TODO generic?
 
 instance print ClassRestriction
 where
-    print (cog, v) = [concat (cog <+ " " <+ v)]
+	print (cog, v) = [concat (cog <+ " " <+ v)]
 
 instance print ClassContext
 where
-    print [] = []
-    print crs = "| " <+ printersperse " & " crs
+	print [] = []
+	print crs = "| " <+ printersperse " & " crs
 
 instance print Type
 where
-    print (Type s []) = if (s == "_String") ["String"] (print s)
-    print (Type s vs)
-    | s == "_List" = "[" <+ vs <+ "]"
-    | s == "_String" = ["String"]
-    | s == "_#Array"
-        | vs == [Type "Char" []] = ["String"]
-        | otherwise = "{#" <+ vs <+ "}"
-    | s % (0,5) == "_Tuple" = "(" <+ printersperse ", " vs <+ ")"
-    | otherwise = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
-    print (Var v) = [v]
-    print (Func [] r []) = print r
-    print (Func [] r cc) = r <+ " " <+ cc
-    print (Func ts r []) = "(" <+ printersperse " " ts <+ " -> " <+ r <+ ")"
-    print (Func ts r cc) = (Func ts r []) <+ " " <+ cc
-    print (Cons tv []) = print tv
-    print (Cons tv ats) = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
-    print (Uniq t) = "*" <+ t
+	print (Type s []) = if (s == "_String") ["String"] (print s)
+	print (Type s vs)
+	| s == "_List" = "[" <+ vs <+ "]"
+	| s == "_String" = ["String"]
+	| s == "_#Array"
+		| vs == [Type "Char" []] = ["String"]
+		| otherwise = "{#" <+ vs <+ "}"
+	| s % (0,5) == "_Tuple" = "(" <+ printersperse ", " vs <+ ")"
+	| otherwise = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
+	print (Var v) = [v]
+	print (Func [] r []) = print r
+	print (Func [] r cc) = r <+ " " <+ cc
+	print (Func ts r []) = "(" <+ printersperse " " ts <+ " -> " <+ r <+ ")"
+	print (Func ts r cc) = (Func ts r []) <+ " " <+ cc
+	print (Cons tv []) = print tv
+	print (Cons tv ats) = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
+	print (Uniq t) = "*" <+ t
 

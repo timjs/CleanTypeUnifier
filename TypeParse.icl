@@ -23,19 +23,19 @@ derive gEq Token
 instance == Token where == a b = a === b
 
 :: Token = TIdent String                // UpperCaseId or FunnyId
-         | TVar String                  // LowerCaseId
+		 | TVar String                  // LowerCaseId
 
-         | TArrow                       // ->
-         | TComma                       // ,
-         | TUnique                      // *
-         | TAnonymous                   // .
-         | TUnboxed                     // #
-         | TStrict                      // !
-         | TColon                       // :
+		 | TArrow                       // ->
+		 | TComma                       // ,
+		 | TUnique                      // *
+		 | TAnonymous                   // .
+		 | TUnboxed                     // #
+		 | TStrict                      // !
+		 | TColon                       // :
 
-         | TParenOpen | TParenClose     // ( )
-         | TBrackOpen | TBrackClose     // [ ]
-         | TBraceOpen | TBraceClose     // { }
+		 | TParenOpen | TParenClose     // ( )
+		 | TBrackOpen | TBrackClose     // [ ]
+		 | TBraceOpen | TBraceClose     // { }
 
 isTIdent (TIdent _) = True; isTIdent _ = False
 isTVar   (TVar   _) = True; isTVar   _ = False
@@ -43,79 +43,79 @@ isTVar   (TVar   _) = True; isTVar   _ = False
 tokenize :: ([Char] -> Maybe [Token])
 tokenize = tkz []
 where
-    tkz :: [Token] [Char] -> Maybe [Token]
-    tkz tks [] = Just tks
-    tkz tks ['-':'>':cs] = tkz (tks ++ [TArrow]) cs
-    tkz tks [',':cs] = tkz (tks ++ [TComma]) cs
-    tkz tks ['*':cs] = tkz (tks ++ [TUnique]) cs
-    tkz tks ['.':cs] = tkz (tks ++ [TAnonymous]) cs
-    tkz tks ['#':cs] = tkz (tks ++ [TUnboxed]) cs
-    tkz tks ['!':cs] = tkz (tks ++ [TStrict]) cs
-    tkz tks ['(':cs] = tkz (tks ++ [TParenOpen]) cs
-    tkz tks [')':cs] = tkz (tks ++ [TParenClose]) cs
-    tkz tks ['[':cs] = tkz (tks ++ [TBrackOpen]) cs
-    tkz tks [']':cs] = tkz (tks ++ [TBrackClose]) cs
-    tkz tks ['{':cs] = tkz (tks ++ [TBraceOpen]) cs
-    tkz tks ['}':cs] = tkz (tks ++ [TBraceClose]) cs
-    tkz tks [c:cs]
-    | isSpace c = tkz tks cs
-    | isUpper c = let (id, cs`) = span isIdentChar cs in
-                  tkz (tks ++ [TIdent $ toString [c:id]]) cs`
-    | isFunny c = let (id, cs`) = span isFunny cs in
-                  tkz (tks ++ [TIdent $ toString [c:id]]) cs`
-    | isLower c = let (var, cs`) = span isIdentChar cs in
-                  tkz (tks ++ [TVar $ toString [c:var]]) cs`
-    tkz _ _ = Nothing
+	tkz :: [Token] [Char] -> Maybe [Token]
+	tkz tks [] = Just tks
+	tkz tks ['-':'>':cs] = tkz (tks ++ [TArrow]) cs
+	tkz tks [',':cs] = tkz (tks ++ [TComma]) cs
+	tkz tks ['*':cs] = tkz (tks ++ [TUnique]) cs
+	tkz tks ['.':cs] = tkz (tks ++ [TAnonymous]) cs
+	tkz tks ['#':cs] = tkz (tks ++ [TUnboxed]) cs
+	tkz tks ['!':cs] = tkz (tks ++ [TStrict]) cs
+	tkz tks ['(':cs] = tkz (tks ++ [TParenOpen]) cs
+	tkz tks [')':cs] = tkz (tks ++ [TParenClose]) cs
+	tkz tks ['[':cs] = tkz (tks ++ [TBrackOpen]) cs
+	tkz tks [']':cs] = tkz (tks ++ [TBrackClose]) cs
+	tkz tks ['{':cs] = tkz (tks ++ [TBraceOpen]) cs
+	tkz tks ['}':cs] = tkz (tks ++ [TBraceClose]) cs
+	tkz tks [c:cs]
+	| isSpace c = tkz tks cs
+	| isUpper c = let (id, cs`) = span isIdentChar cs in
+				  tkz (tks ++ [TIdent $ toString [c:id]]) cs`
+	| isFunny c = let (id, cs`) = span isFunny cs in
+				  tkz (tks ++ [TIdent $ toString [c:id]]) cs`
+	| isLower c = let (var, cs`) = span isIdentChar cs in
+				  tkz (tks ++ [TVar $ toString [c:var]]) cs`
+	tkz _ _ = Nothing
 
-    isIdentChar :: Char -> Bool
-    isIdentChar c = any (\f->f c) [isLower, isUpper, isDigit, (==)'_', (==) '`']
+	isIdentChar :: Char -> Bool
+	isIdentChar c = any (\f->f c) [isLower, isUpper, isDigit, (==)'_', (==) '`']
 
-    isFunny :: Char -> Bool
-    isFunny c = isMember c ['~@#$%^?!+-*<>\\/|&=:']
+	isFunny :: Char -> Bool
+	isFunny c = isMember c ['~@#$%^?!+-*<>\\/|&=:']
 
 type :: Parser Token Type
 type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for now
    <|> liftM2 Cons cons (some argtype)
    <|> argtype
 where
-    argtype :: Parser Token Type
-    argtype = item TParenOpen *> type <* item TParenClose
-          <|> (item (TIdent "String") >>| pure (Type "_String" []))
-          <|> liftM2 Type ident (many argtype)
-          <|> liftM Var var
-          <|> liftM Uniq uniq
-          <|> item TStrict *> argtype       // ! ignored for now
-          <|> item TUnboxed *> argtype      // # ignored for now
-          <|> item TAnonymous *> argtype    // . ignored for now
-          <|> unqvar *> item TColon *> argtype // u: & friends ignored for now
-          <|> liftM (\t -> Type "_#Array" [t])
-                (item TBraceOpen *> type <* item TBraceClose)
-          <|> liftM (\t -> Type "_List" [t])
-                (item TBrackOpen *> type <* item TBrackClose)
-          <|> liftM (\ts -> Type ("_Tuple" +++ toString (length ts)) ts)
-                (item TParenOpen *> seplist TComma type <* item TParenClose)
+	argtype :: Parser Token Type
+	argtype = item TParenOpen *> type <* item TParenClose
+		  <|> (item (TIdent "String") >>| pure (Type "_String" []))
+		  <|> liftM2 Type ident (many argtype)
+		  <|> liftM Var var
+		  <|> liftM Uniq uniq
+		  <|> item TStrict *> argtype       // ! ignored for now
+		  <|> item TUnboxed *> argtype      // # ignored for now
+		  <|> item TAnonymous *> argtype    // . ignored for now
+		  <|> unqvar *> item TColon *> argtype // u: & friends ignored for now
+		  <|> liftM (\t -> Type "_#Array" [t])
+				(item TBraceOpen *> type <* item TBraceClose)
+		  <|> liftM (\t -> Type "_List" [t])
+				(item TBrackOpen *> type <* item TBrackClose)
+		  <|> liftM (\ts -> Type ("_Tuple" +++ toString (length ts)) ts)
+				(item TParenOpen *> seplist TComma type <* item TParenClose)
 
-    ident :: Parser Token String
-    ident = (\(TIdent id)->id) <$> satisfy isTIdent
+	ident :: Parser Token String
+	ident = (\(TIdent id)->id) <$> satisfy isTIdent
 
-    var :: Parser Token TypeVar
-    var = (\(TVar var)->var) <$> satisfy isTVar
-    cons = var
-    unqvar = var
+	var :: Parser Token TypeVar
+	var = (\(TVar var)->var) <$> satisfy isTVar
+	cons = var
+	unqvar = var
 
-    uniq :: Parser Token Type
-    uniq = item TUnique *> argtype
+	uniq :: Parser Token Type
+	uniq = item TUnique *> argtype
 
-    seplist :: a (Parser a b) -> Parser a [b] | Eq a
-    seplist sep p = liftM2 (\es->(\e->reverse [e:es])) (some (p <* item sep)) p
-                <|> liftM pure p
-                <|> pure empty
+	seplist :: a (Parser a b) -> Parser a [b] | Eq a
+	seplist sep p = liftM2 (\es->(\e->reverse [e:es])) (some (p <* item sep)) p
+				<|> liftM pure p
+				<|> pure empty
 
 parseType :: [Char] -> Maybe Type
 parseType cs
 # mbTokens = tokenize cs
 | isNothing mbTokens = Nothing
 = case fst $ runParser type (fromJust mbTokens) of
-        (Left _) -> Nothing
-        (Right t) -> Just t
+		(Left _) -> Nothing
+		(Right t) -> Just t
 

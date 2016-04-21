@@ -30,77 +30,77 @@ alg1 [] = Just []
 alg1 [eq=:(t1,t2):es]
 | t1 == t2 = alg1 es
 | otherwise = case (isVar t1, isVar t2) of
-    (True, _) -> if (isMember (fromVar t1) $ allVars t2) Nothing
-        (if (isMember (fromVar t1) $ flatten $ map allVars $ types es)
-            (eliminate eq es >>= \es` -> alg1 [eq:es`])
-            ((\tvas -> [(fromVar t1, t2):tvas]) <$> alg1 es))
-    (False, True)  -> alg1 [(t2,t1):es]
-    (False, False) -> reduct eq >>= \es` -> alg1 $ es` ++ es
+	(True, _) -> if (isMember (fromVar t1) $ allVars t2) Nothing
+		(if (isMember (fromVar t1) $ flatten $ map allVars $ types es)
+			(eliminate eq es >>= \es` -> alg1 [eq:es`])
+			((\tvas -> [(fromVar t1, t2):tvas]) <$> alg1 es))
+	(False, True)  -> alg1 [(t2,t1):es]
+	(False, False) -> reduct eq >>= \es` -> alg1 $ es` ++ es
 where
-    types :: ([Equation] -> [Type])
-    types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
+	types :: ([Equation] -> [Type])
+	types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
 
-    reduct :: Equation -> Maybe [Equation]
-    reduct (Type t1 tvs1, Type t2 tvs2)
-        | t1 <> t2 = Nothing
-        | length tvs1 <> length tvs2 = Nothing
-        | otherwise = Just $ zip2 tvs1 tvs2
-    reduct (Func is1 r1 cc1, Func is2 r2 cc2)        //TODO class context
-        | length is1 <> length is2 = Nothing
-        | otherwise = Just $ zip2 [r1:is1] [r2:is2]
-    reduct (Cons v1 ts1, Cons v2 ts2)
-        // In this case, we apply term reduction on variable root function
-        // symbols. We need to check that these symbols don't occur elsewhere
-        // with different arity (as Cons *or* Var); otherwise we're good.
-        | badArity v1 ts1 || badArity v2 ts2 = Nothing
-        | otherwise = Just $ zip2 [Var v1:ts1] [Var v2:ts2]
-        where
-            badArity v ts
-            | isEmpty arities = False
-            | length (removeDup arities) > 1 = True
-            | otherwise = hd arities <> length ts
-            where
-                arities = let subts = flatten $ map subtypes $ ts1++ts2 in
-                    map arity $ filter (\t -> isCons` v t || t == Var v) subts
-    reduct (Uniq t1, Uniq t2) = Just [(t1,t2)]
-    reduct (Var v1, Var v2) = abort "Cannot reduct variables\n"
-    reduct _ = Nothing
-    
-    eliminate :: Equation [Equation] -> Maybe [Equation]
-    eliminate _ [] = Just []
-    eliminate (Var v, t) [(lft,rgt):es]
-        # (mbLft, mbRgt) = (assign (v,t) lft, assign (v,t) rgt)
-        # mbEqs = eliminate (Var v, t) es
-        | isNothing mbEqs || isNothing mbLft || isNothing mbRgt = Nothing
-        = Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
+	reduct :: Equation -> Maybe [Equation]
+	reduct (Type t1 tvs1, Type t2 tvs2)
+		| t1 <> t2 = Nothing
+		| length tvs1 <> length tvs2 = Nothing
+		| otherwise = Just $ zip2 tvs1 tvs2
+	reduct (Func is1 r1 cc1, Func is2 r2 cc2)        //TODO class context
+		| length is1 <> length is2 = Nothing
+		| otherwise = Just $ zip2 [r1:is1] [r2:is2]
+	reduct (Cons v1 ts1, Cons v2 ts2)
+		// In this case, we apply term reduction on variable root function
+		// symbols. We need to check that these symbols don't occur elsewhere
+		// with different arity (as Cons *or* Var); otherwise we're good.
+		| badArity v1 ts1 || badArity v2 ts2 = Nothing
+		| otherwise = Just $ zip2 [Var v1:ts1] [Var v2:ts2]
+		where
+			badArity v ts
+			| isEmpty arities = False
+			| length (removeDup arities) > 1 = True
+			| otherwise = hd arities <> length ts
+			where
+				arities = let subts = flatten $ map subtypes $ ts1++ts2 in
+					map arity $ filter (\t -> isCons` v t || t == Var v) subts
+	reduct (Uniq t1, Uniq t2) = Just [(t1,t2)]
+	reduct (Var v1, Var v2) = abort "Cannot reduct variables\n"
+	reduct _ = Nothing
+
+	eliminate :: Equation [Equation] -> Maybe [Equation]
+	eliminate _ [] = Just []
+	eliminate (Var v, t) [(lft,rgt):es]
+		# (mbLft, mbRgt) = (assign (v,t) lft, assign (v,t) rgt)
+		# mbEqs = eliminate (Var v, t) es
+		| isNothing mbEqs || isNothing mbLft || isNothing mbRgt = Nothing
+		= Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
 
 
 instance unify Type
 where
-    // This is basically a wrapper for alg1 above. However, here, type
-    // variables with the same name in the first and second type should not be
-    // considered equal (which is what happens in alg1). Therefore, we first
-    // rename all type (constructor) variables to *_1 and *_2, call alg1, and
-    // rename them back.
-    unify is t1 t2 //TODO instances ignored; class context not considered
-    # (t1, t2) = (appendToVars "_1" t1, appendToVars "_2" t2)
-    # mbTvs = alg1 [(t1, t2)]
-    | isNothing mbTvs = Nothing
-    # tvs = fromJust mbTvs
-    # (tvs1, tvs2) = (filter (endsWith "_1") tvs, filter (endsWith "_2") tvs)
-    # (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
-    = Just (tvs1, tvs2)
-    where
-        appendToVars :: String Type -> Type
-        appendToVars s t = fromJust $ assignAll (map rename $ allVars t) t
-        where rename v = (v, Var (v+++s))
+	// This is basically a wrapper for alg1 above. However, here, type
+	// variables with the same name in the first and second type should not be
+	// considered equal (which is what happens in alg1). Therefore, we first
+	// rename all type (constructor) variables to *_1 and *_2, call alg1, and
+	// rename them back.
+	unify is t1 t2 //TODO instances ignored; class context not considered
+	# (t1, t2) = (appendToVars "_1" t1, appendToVars "_2" t2)
+	# mbTvs = alg1 [(t1, t2)]
+	| isNothing mbTvs = Nothing
+	# tvs = fromJust mbTvs
+	# (tvs1, tvs2) = (filter (endsWith "_1") tvs, filter (endsWith "_2") tvs)
+	# (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
+	= Just (tvs1, tvs2)
+	where
+		appendToVars :: String Type -> Type
+		appendToVars s t = fromJust $ assignAll (map rename $ allVars t) t
+		where rename v = (v, Var (v+++s))
 
-        endsWith :: String TVAssignment -> Bool
-        endsWith n (h,_) = h % (size h - size n, size h - 1) == n
+		endsWith :: String TVAssignment -> Bool
+		endsWith n (h,_) = h % (size h - size n, size h - 1) == n
 
-        removeEnds :: TVAssignment -> TVAssignment
-        removeEnds (v,t) = let rm s = s % (0, size s - 3) in (rm v, fromJust $ 
-                            assignAll (map (\v->(v,Var (rm v))) $ allVars t) t)
+		removeEnds :: TVAssignment -> TVAssignment
+		removeEnds (v,t) = let rm s = s % (0, size s - 3) in (rm v, fromJust $ 
+		                   assignAll (map (\v->(v,Var (rm v))) $ allVars t) t)
 
 //-----------------------//
 // Unification utilities //
@@ -110,17 +110,17 @@ where
 assign :: TVAssignment Type -> Maybe Type
 assign va (Type s ts) = Type s <$^> map (assign va) ts
 assign va (Func ts r cc) = Func <$^> map (assign va) ts 
-        >>= (\f->f <$> assign va r) >>= (\f->pure $ f cc)
+		>>= (\f->f <$> assign va r) >>= (\f->pure $ f cc)
 assign (v,a) (Var v`) = Just $ if (v == v`) a (Var v`)
 assign va=:(v,Type s ts) (Cons v` ts`)
-    | v == v`   = Type s <$^> map (assign va) (ts ++ ts`)
-    | otherwise = Cons v` <$^> map (assign va) ts`
+	| v == v`   = Type s <$^> map (assign va) (ts ++ ts`)
+	| otherwise = Cons v` <$^> map (assign va) ts`
 assign va=:(v,Cons c ts) (Cons v` ts`)
-    | v == v`   = Cons c <$^> map (assign va) (ts ++ ts`)
-    | otherwise = Cons v` <$^> map (assign va) ts`
+	| v == v`   = Cons c <$^> map (assign va) (ts ++ ts`)
+	| otherwise = Cons v` <$^> map (assign va) ts`
 assign va=:(v,Var v`) (Cons v`` ts)
-    | v == v``  = Cons v` <$^> map (assign va) ts
-    | otherwise = Cons v`` <$^> map (assign va) ts
+	| v == v``  = Cons v` <$^> map (assign va) ts
+	| otherwise = Cons v`` <$^> map (assign va) ts
 assign _ (Cons _ _) = Nothing
 assign va (Uniq t) = Uniq <$> (assign va t)
 

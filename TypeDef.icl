@@ -24,8 +24,8 @@ subtypes t = [t]
 allVars :: Type -> [TypeVar]
 allVars t = map varName $ filter (\t -> isCons t || isVar t) $ subtypes t
 where
-    varName :: Type -> TypeVar
-    varName (Cons v _) = v; varName (Var v) = v
+	varName :: Type -> TypeVar
+	varName (Cons v _) = v; varName (Var v) = v
 
 isVar :: Type -> Bool
 isVar (Var _) = True; isVar _ = False
