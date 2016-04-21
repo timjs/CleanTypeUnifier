@@ -3,6 +3,8 @@ implementation module TypeUtil
 import TypeDef
 
 import StdString
+import StdTuple
+
 from Data.Func import $
 import Data.List
 from Text import class Text (concat), instance Text String
@@ -25,12 +27,14 @@ where
 
 instance print ClassRestriction
 where
-	print (cog, v) = [concat (cog <+ " " <+ v)]
+	print (cog, v) = cog <+ " " <+ v
 
 instance print ClassContext
 where
 	print [] = []
-	print crs = "| " <+ printersperse " & " crs
+	print crs = "| " <+ printersperse " & " [printersperse ", " (map fst grp) <+ " " <+ snd (hd grp) \\ grp <- grps]
+	where
+		grps = groupBy (\a b -> snd a == snd b) $ filter isClassRestriction crs
 
 instance print Type
 where

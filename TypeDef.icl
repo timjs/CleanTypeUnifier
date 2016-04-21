@@ -3,8 +3,10 @@ implementation module TypeDef
 from StdOverloaded import class ==(..), class length(..)
 from StdClass import class Eq
 import StdList
+import StdTuple
 from StdString import instance == {#Char}
 import StdBool
+from StdFunc import o
 from GenEq import generic gEq, ===
 from Data.Func import $
 
@@ -45,4 +47,11 @@ arity (Func is _ _) = length is
 arity (Var _) = 0
 arity (Cons _ ts) = length ts
 //TODO arity of Uniq t?
+
+isClass :: ClassOrGeneric -> Bool
+isClass (Class _) = True
+isClass _ = False
+
+isClassRestriction :: (ClassRestriction -> Bool)
+isClassRestriction = isClass o fst
 

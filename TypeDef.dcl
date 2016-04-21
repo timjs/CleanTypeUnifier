@@ -13,7 +13,7 @@ from Data.Maybe import :: Maybe
 :: TVAssignment :== (TypeVar, Type)
 
 :: ClassContext :== [ClassRestriction]
-:: ClassRestriction :== (ClassOrGeneric, TypeVar)
+:: ClassRestriction :== (ClassOrGeneric, Type)
 :: ClassOrGeneric = Class String | Generic //TODO generic?
 
 :: Instance = Instance String Type
@@ -33,4 +33,7 @@ isCons :: Type -> Bool
 isCons` :: TypeVar Type -> Bool
 
 arity :: Type -> Int
+
+isClass :: ClassOrGeneric -> Bool
+isClassRestriction :: (ClassRestriction -> Bool)
 
