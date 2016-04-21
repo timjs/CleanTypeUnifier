@@ -32,6 +32,8 @@ fromVar :: Type -> TypeVar
 isCons :: Type -> Bool
 isCons` :: TypeVar Type -> Bool
 
+isType :: Type -> Bool
+
 arity :: Type -> Int
 
 isClass :: ClassOrGeneric -> Bool

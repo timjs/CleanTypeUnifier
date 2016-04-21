@@ -41,6 +41,9 @@ isCons (Cons _ _) = True; isCons _ = False
 isCons` :: TypeVar Type -> Bool
 isCons` v (Cons v` _) = v == v`; isCons` _ _ = False
 
+isType :: Type -> Bool
+isType (Type _ _) = True; isType _ = False
+
 arity :: Type -> Int
 arity (Type _ ts) = length ts
 arity (Func is _ _) = length is

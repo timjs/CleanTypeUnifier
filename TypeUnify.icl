@@ -35,8 +35,20 @@ alg1 [eq=:(t1,t2):es]
 			(eliminate eq es >>= \es` -> alg1 [eq:es`])
 			((\tvas -> [(fromVar t1, t2):tvas]) <$> alg1 es))
 	(False, True)  -> alg1 [(t2,t1):es]
-	(False, False) -> reduct eq >>= \es` -> alg1 $ es` ++ es
+	(False, False) -> case (isCons t1, isCons t2) of
+		(True, False) -> if (not (isType t2) || arity t2 < arity t1) Nothing
+			(let (Cons cv ts1, Type t ts2) = (t1, t2) in
+				if (isMember cv $ allVars t2) Nothing
+					(alg1 $ es ++ makeConsReduction t1 t2))
+		(False, True) -> alg1 [(t2,t1):es]
+		_             -> reduct eq >>= \es` -> alg1 $ es` ++ es
 where
+	makeConsReduction :: Type Type -> [Equation]
+	makeConsReduction (Cons cv ts1) (Type t ts2)
+		= [(Var cv, Type t ass_vars) : [(t1,t2) \\ t1 <- ts1 & t2 <- uni_vars]]
+	where
+		(ass_vars, uni_vars) = splitAt (length ts2 - length ts1) ts2
+
 	types :: ([Equation] -> [Type])
 	types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
 
@@ -111,7 +123,7 @@ assign :: TVAssignment Type -> Maybe Type
 assign va (Type s ts) = Type s <$^> map (assign va) ts
 assign va (Func ts r cc) = Func <$^> map (assign va) ts 
 		>>= (\f->f <$> assign va r) >>= (\f->pure $ f cc)
-assign (v,a) (Var v`) = Just $ if (v == v`) a (Var v`)
+assign (v,a) (Var v`) = pure $ if (v == v`) a (Var v`)
 assign va=:(v,Type s ts) (Cons v` ts`)
 	| v == v`   = Type s <$^> map (assign va) (ts ++ ts`)
 	| otherwise = Cons v` <$^> map (assign va) ts`
@@ -121,7 +133,7 @@ assign va=:(v,Cons c ts) (Cons v` ts`)
 assign va=:(v,Var v`) (Cons v`` ts)
 	| v == v``  = Cons v` <$^> map (assign va) ts
 	| otherwise = Cons v`` <$^> map (assign va) ts
-assign _ (Cons _ _) = Nothing
+assign _ (Cons _ _) = empty
 assign va (Uniq t) = Uniq <$> (assign va t)
 
 (<$^>) infixl 4 :: ([a] -> b) [Maybe a] -> Maybe b
