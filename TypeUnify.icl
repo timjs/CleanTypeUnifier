@@ -53,6 +53,8 @@ where
 	types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
 
 	reduct :: Equation -> Maybe [Equation]
+	reduct (Func [] r _, t) = reduct (r, t) //Can do this because we don't care about CC
+	reduct (t, Func [] r _) = reduct (t, r)
 	reduct (Type t1 tvs1, Type t2 tvs2)
 		| t1 <> t2 = Nothing
 		| length tvs1 <> length tvs2 = Nothing
