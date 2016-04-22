@@ -80,22 +80,24 @@ type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for n
 where
 	argtype :: Parser Token Type
 	argtype = item TParenOpen *> type <* item TParenClose
-		<|> (item (TIdent "String") >>| pure (Type "_String" []))
+		<|> (item (TIdent "String") >>| pure (Type "_#Array" [Type "Char" []]))
 		<|> liftM4 (\_ t ts _->Type t ts)
 			(item TParenOpen) ident (many argtype) (item TParenClose)
 		<|> liftM (\t->Type t []) ident
 		<|> liftM Var var
 		<|> liftM Uniq uniq
-		<|> item TStrict *> argtype       // ! ignored for now
-		<|> item TUnboxed *> argtype      // # ignored for now
-		<|> item TAnonymous *> argtype    // . ignored for now
-		<|> unqvar *> item TColon *> argtype // u: & friends ignored for now
 		<|> liftM (\t -> Type "_#Array" [t])
+			(list [TBraceOpen, TUnboxed] *> type <* item TBraceClose)
+		<|> liftM (\t -> Type "_Array" [t])
 			(item TBraceOpen *> type <* item TBraceClose)
 		<|> liftM (\t -> Type "_List" [t])
 			(item TBrackOpen *> type <* item TBrackClose)
 		<|> liftM (\ts -> Type ("_Tuple" +++ toString (length ts)) ts)
 			(item TParenOpen *> seplist TComma type <* item TParenClose)
+		<|> item TStrict *> argtype       // ! ignored for now
+		<|> item TUnboxed *> argtype      // # ignored for now (except for the _#Array case above)
+		<|> item TAnonymous *> argtype    // . ignored for now
+		<|> unqvar *> item TColon *> argtype // u: & friends ignored for now
 
 	ident :: Parser Token String
 	ident = (\(TIdent id)->id) <$> satisfy isTIdent
