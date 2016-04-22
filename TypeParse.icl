@@ -75,25 +75,27 @@ where
 
 type :: Parser Token Type
 type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for now
-   <|> liftM2 Cons cons (some argtype)
-   <|> argtype
+	<|> liftM2 Cons cons (some argtype)
+	<|> argtype
 where
 	argtype :: Parser Token Type
 	argtype = item TParenOpen *> type <* item TParenClose
-		  <|> (item (TIdent "String") >>| pure (Type "_String" []))
-		  <|> liftM2 Type ident (many argtype)
-		  <|> liftM Var var
-		  <|> liftM Uniq uniq
-		  <|> item TStrict *> argtype       // ! ignored for now
-		  <|> item TUnboxed *> argtype      // # ignored for now
-		  <|> item TAnonymous *> argtype    // . ignored for now
-		  <|> unqvar *> item TColon *> argtype // u: & friends ignored for now
-		  <|> liftM (\t -> Type "_#Array" [t])
-				(item TBraceOpen *> type <* item TBraceClose)
-		  <|> liftM (\t -> Type "_List" [t])
-				(item TBrackOpen *> type <* item TBrackClose)
-		  <|> liftM (\ts -> Type ("_Tuple" +++ toString (length ts)) ts)
-				(item TParenOpen *> seplist TComma type <* item TParenClose)
+		<|> (item (TIdent "String") >>| pure (Type "_String" []))
+		<|> liftM4 (\_ t ts _->Type t ts)
+			(item TParenOpen) ident (many argtype) (item TParenClose)
+		<|> liftM (\t->Type t []) ident
+		<|> liftM Var var
+		<|> liftM Uniq uniq
+		<|> item TStrict *> argtype       // ! ignored for now
+		<|> item TUnboxed *> argtype      // # ignored for now
+		<|> item TAnonymous *> argtype    // . ignored for now
+		<|> unqvar *> item TColon *> argtype // u: & friends ignored for now
+		<|> liftM (\t -> Type "_#Array" [t])
+			(item TBraceOpen *> type <* item TBraceClose)
+		<|> liftM (\t -> Type "_List" [t])
+			(item TBrackOpen *> type <* item TBrackClose)
+		<|> liftM (\ts -> Type ("_Tuple" +++ toString (length ts)) ts)
+			(item TParenOpen *> seplist TComma type <* item TParenClose)
 
 	ident :: Parser Token String
 	ident = (\(TIdent id)->id) <$> satisfy isTIdent
@@ -108,8 +110,8 @@ where
 
 	seplist :: a (Parser a b) -> Parser a [b] | Eq a
 	seplist sep p = liftM2 (\es->(\e->reverse [e:es])) (some (p <* item sep)) p
-				<|> liftM pure p
-				<|> pure empty
+		<|> liftM pure p
+		<|> pure empty
 
 parseType :: [Char] -> Maybe Type
 parseType cs
