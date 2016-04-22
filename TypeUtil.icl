@@ -41,6 +41,11 @@ where
 	print (Type s []) = if (s == "_String") ["String"] (print s)
 	print (Type s vs)
 	| s == "_List" = "[" <+ vs <+ "]"
+	| s == "_!List" = "[!" <+ vs <+ "]"
+	| s == "_List!" = "[" <+ vs <+ "!]"
+	| s == "_!List!" = "[!" <+ vs <+ "!]"
+	| s == "_#List" = "[#" <+ vs <+ "]"
+	| s == "_#List!" = "[#" <+ vs <+ "!]"
 	| s == "_String" = ["String"]
 	| s == "_#Array"
 		| vs == [Type "Char" []] = ["String"]
