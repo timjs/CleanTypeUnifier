@@ -2,8 +2,7 @@ implementation module TypeUtil
 
 import TypeDef
 
-import StdString
-import StdTuple
+import StdArray, StdString, StdTuple
 
 from Data.Func import $
 import Data.List
@@ -39,22 +38,26 @@ where
 instance print Type
 where
 	print (Type s vs)
-		| s == "_String" = ["_String"]
-		| s == "_Unit"   = ["()"]
+		// Lists
 		| s == "_List"   = "[" <+ vs <+ "]"
 		| s == "_!List"  = "[!" <+ vs <+ "]"
 		| s == "_List!"  = "[" <+ vs <+ "!]"
 		| s == "_!List!" = "[!" <+ vs <+ "!]"
 		| s == "_#List"  = "[#" <+ vs <+ "]"
 		| s == "_#List!" = "[#" <+ vs <+ "!]"
-		| s == "_String" = ["String"]
+		// Arrays
 		| s == "_#Array"
 			| vs == [Type "Char" []]
 			             = ["String"]
 			| otherwise  = "{#" <+ vs <+ "}"
 		| s == "_Array"  = "{" <+ hd vs <+ "}"
+		// Tuples
 		| s % (0,5) == "_Tuple"
 		                 = "(" <+ printersperse ", " vs <+ ")"
+		// Other predefined types
+		| s == "_Unit"   = ["()"]
+		| s.[0] == '_'   = [s % (1, size s - 1)]
+		// Other types
 		| isEmpty vs     = print s
 		| otherwise      = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
 	print (Var v) = [v]
