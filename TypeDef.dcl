@@ -11,6 +11,7 @@ from Data.Maybe import :: Maybe
 
 :: TypeVar :== String
 :: TVAssignment :== (TypeVar, Type)
+:: Unifier :== ([TVAssignment], [TVAssignment])
 
 :: ClassContext :== [ClassRestriction]
 :: ClassRestriction :== (ClassOrGeneric, Type)

@@ -38,27 +38,31 @@ where
 
 instance print Type
 where
-	print (Type s []) = if (s == "_String") ["String"] (print s)
 	print (Type s vs)
-	| s == "_List" = "[" <+ vs <+ "]"
-	| s == "_!List" = "[!" <+ vs <+ "]"
-	| s == "_List!" = "[" <+ vs <+ "!]"
-	| s == "_!List!" = "[!" <+ vs <+ "!]"
-	| s == "_#List" = "[#" <+ vs <+ "]"
-	| s == "_#List!" = "[#" <+ vs <+ "!]"
-	| s == "_String" = ["String"]
-	| s == "_#Array"
-		| vs == [Type "Char" []] = ["String"]
-		| otherwise = "{#" <+ vs <+ "}"
-	| s == "_Array" = "{" <+ hd vs <+ "}"
-	| s % (0,5) == "_Tuple" = "(" <+ printersperse ", " vs <+ ")"
-	| otherwise = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
+		| s == "_String" = ["_String"]
+		| s == "_Unit"   = ["()"]
+		| s == "_List"   = "[" <+ vs <+ "]"
+		| s == "_!List"  = "[!" <+ vs <+ "]"
+		| s == "_List!"  = "[" <+ vs <+ "!]"
+		| s == "_!List!" = "[!" <+ vs <+ "!]"
+		| s == "_#List"  = "[#" <+ vs <+ "]"
+		| s == "_#List!" = "[#" <+ vs <+ "!]"
+		| s == "_String" = ["String"]
+		| s == "_#Array"
+			| vs == [Type "Char" []]
+			             = ["String"]
+			| otherwise  = "{#" <+ vs <+ "}"
+		| s == "_Array"  = "{" <+ hd vs <+ "}"
+		| s % (0,5) == "_Tuple"
+		                 = "(" <+ printersperse ", " vs <+ ")"
+		| isEmpty vs     = print s
+		| otherwise      = "(" <+ s <+ " " <+ printersperse " " vs <+ ")"
 	print (Var v) = [v]
 	print (Func [] r []) = print r
 	print (Func [] r cc) = r <+ " " <+ cc
 	print (Func ts r []) = "(" <+ printersperse " " ts <+ " -> " <+ r <+ ")"
 	print (Func ts r cc) = (Func ts r []) <+ " " <+ cc
-	print (Cons tv []) = print tv
-	print (Cons tv ats) = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
-	print (Uniq t) = "*" <+ t
+	print (Cons tv [])   = print tv
+	print (Cons tv ats)  = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
+	print (Uniq t)       = "*" <+ t
 
