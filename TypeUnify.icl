@@ -25,6 +25,7 @@ derive gEq ClassOrGeneric, Type
 // An Efficient Unification Algorithm, 1982, section 2. This implementation
 // selects the first from the list of equations, applies the appropriate step
 // (a through d) or proceeds to the next equation.
+// It has been modified a bit to be able to deal with constructor variables.
 alg1 :: [Equation] -> Maybe [TVAssignment]
 alg1 [] = Just []
 alg1 [eq=:(t1,t2):es]
@@ -97,6 +98,7 @@ where
 	// rename all type (constructor) variables to *_1 and *_2, call alg1, and
 	// rename them back.
 	unify is t1 t2 //TODO instances ignored; class context not considered
+	# (t1, t2) = (reduceArities t1, reduceArities t2)
 	# (t1, t2) = (appendToVars "_1" t1, appendToVars "_2" t2)
 	# mbTvs = alg1 [(t1, t2)]
 	| isNothing mbTvs = Nothing
@@ -147,4 +149,14 @@ ifM b x :== if b (pure x) empty
 // Apply a list of TVAssignments in the same manner as assign to a Type
 assignAll :: ([TVAssignment] Type -> Maybe Type)
 assignAll = flip $ foldM (flip assign)
+
+// Make all functions arity 1 by transforming a b -> c to a -> b -> c
+reduceArities :: Type -> Type
+reduceArities (Func ts r cc)
+	| length ts > 1 = Func [hd ts] (reduceArities $ Func (tl ts) r cc) cc
+	| otherwise = Func (map reduceArities ts) (reduceArities r) cc
+reduceArities (Type s ts) = Type s $ map reduceArities ts
+reduceArities (Cons v ts) = Cons v $ map reduceArities ts
+reduceArities (Uniq t) = Uniq $ reduceArities t
+reduceArities (Var v) = Var v
 
