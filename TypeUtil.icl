@@ -6,6 +6,7 @@ import StdArray, StdString, StdTuple
 
 from Data.Func import $
 import Data.List
+import Data.Maybe
 from Text import class Text (concat), instance Text String
 from GenEq import generic gEq, ===
 
@@ -16,8 +17,12 @@ printersperse :: a [b] -> [String] | print a & print b
 printersperse a bs = intercalate (print a) (map print bs)
 
 instance print String where print s = [s]
+instance print Int where print i = [toString i]
 
 instance print [a] | print a where print xs = [concat e \\ e <- map print xs]
+
+instance print (Maybe a) | print a
+where print Nothing = []; print (Just x) = print x
 
 instance print ClassOrGeneric
 where
