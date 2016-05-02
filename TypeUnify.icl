@@ -68,6 +68,10 @@ where
 		// symbols. We need to check that these symbols don't occur elsewhere
 		// with different arity (as Cons *or* Var); otherwise we're good.
 		| badArity v1 ts1 || badArity v2 ts2 = Nothing
+		| length ts2 > length ts1 = reduct (Cons v2 ts2, Cons v1 ts1)
+		| length ts1 > length ts2
+			# (takeargs, dropargs) = splitAt (length ts1 - length ts2) ts1
+			= Just $ zip2 [Cons v1 takeargs:dropargs] [Var v2:ts2]
 		| otherwise = Just $ zip2 [Var v1:ts1] [Var v2:ts2]
 		where
 			badArity v ts
