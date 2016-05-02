@@ -76,13 +76,12 @@ where
 type :: Parser Token Type
 type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for now
 	<|> liftM2 Cons cons (some argtype)
+	<|> liftM2 Type ident (many argtype)
 	<|> argtype
 where
 	argtype :: Parser Token Type
 	argtype = item TParenOpen *> type <* item TParenClose
 		<|> (item (TIdent "String") >>| pure (Type "_#Array" [Type "Char" []]))
-		<|> liftM4 (\_ t ts _->Type t ts)
-			(item TParenOpen) ident (many argtype) (item TParenClose)
 		<|> liftM (\t->Type t []) ident
 		<|> liftM Var var
 		<|> liftM Uniq uniq
