@@ -76,6 +76,7 @@ where
 type :: Parser Token Type
 type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for now
 	<|> liftM2 Cons cons (some argtype)
+	<|> (item (TIdent "String") >>| pure (Type "_#Array" [Type "Char" []]))
 	<|> liftM2 Type ident (many argtype)
 	<|> argtype
 where
