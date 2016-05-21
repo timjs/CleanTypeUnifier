@@ -35,6 +35,8 @@ isCons` :: TypeVar Type -> Bool
 
 isType :: Type -> Bool
 
+isUniq :: Type -> Bool
+
 arity :: Type -> Int
 
 isClass :: ClassOrGeneric -> Bool

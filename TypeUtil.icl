@@ -74,3 +74,13 @@ where
 	print (Cons tv ats)  = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
 	print (Uniq t)       = "*" <+ t
 
+propagate_uniqueness :: Type -> Type
+propagate_uniqueness (Type t ts)
+	# ts = map propagate_uniqueness ts
+	= if (any isUniq ts) (Uniq (Type t ts)) (Type t ts)
+propagate_uniqueness (Func is r cc)
+	= Func (map propagate_uniqueness is) (propagate_uniqueness r) cc
+propagate_uniqueness (Cons v ts)
+	# ts = map propagate_uniqueness ts
+	= if (any isUniq ts) (Uniq (Cons v ts)) (Cons v ts)
+propagate_uniqueness t = t

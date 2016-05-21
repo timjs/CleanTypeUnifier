@@ -18,3 +18,4 @@ instance print ClassRestriction
 instance print ClassContext
 instance print Type
 
+propagate_uniqueness :: Type -> Type
