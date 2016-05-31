@@ -61,3 +61,16 @@ isClass _ = False
 isClassRestriction :: (ClassRestriction -> Bool)
 isClassRestriction = isClass o fst
 
+td_name :: TypeDef -> String
+td_name {td_name} = td_name
+
+typedef :: String Bool [Type] TypeDefRhs -> TypeDef
+typedef name uniq args rhs
+	= {td_name=name, td_uniq=uniq, td_args=args, td_rhs=rhs}
+
+constructor :: String [Type] [TypeVar] ClassContext -> Constructor
+constructor name args exi_vars cc
+	= {cons_name=name, cons_args=args, cons_exi_vars=exi_vars, cons_context=cc}
+
+recordfield :: String Type -> RecordField
+recordfield selector type = {rf_name=selector, rf_type=type}
