@@ -111,7 +111,7 @@ where
 	uniq = item TUnique *> argtype
 
 	seplist :: a (Parser a b) -> Parser a [b] | Eq a
-	seplist sep p = liftM2 (\es->(\e->reverse [e:es])) (some (p <* item sep)) p
+	seplist sep p = liftM2 (\es e-> es ++ [e]) (some (p <* item sep)) p
 		<|> liftM pure p
 		<|> pure empty
 
