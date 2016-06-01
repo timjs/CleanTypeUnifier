@@ -86,20 +86,21 @@ where
 				(TDRCons ext cs) = "= " <+ makeADT ext cs
 				(TDRRecord _ exi fields) = "= " <+ 
 					if (isEmpty exi) [] ("E." <+ printersperse " " exi <+ ": ") <+
-					makeRecord fields
+					makeRecord exi fields
 				(TDRSynonym t) = ":== " <+ t
 				TDRAbstract = []
 				(TDRAbstractSynonym t) = "(:== " <+ t <+ ")"
 	where
-		recordIndent = repeatn (size td_name + toInt td_uniq + 2 * length td_args + 6) ' '
-		consIndent = drop 2 recordIndent
+		indent = size td_name + toInt td_uniq + 2 * length td_args
+		recordIndent exi = repeatn (indent + 6 + if (isEmpty exi) 0 (3 + 2 * length exi)) ' '
+		consIndent = repeatn (indent + 4) ' '
 
-		makeRecord :: [RecordField] -> String
-		makeRecord [] = "{}"
-		makeRecord [f1:fs]
+		makeRecord :: [TypeVar] [RecordField] -> String
+		makeRecord _ [] = "{}"
+		makeRecord exi [f1:fs]
 			= concat ("{ " <+ printRf f1 <+ "\n" <+
-				concat [concat (recordIndent <+ ", " <+ printRf f <+ "\n")
-				        \\ f <- fs] <+ recordIndent <+ "}")
+				concat [concat (recordIndent exi <+ ", " <+ printRf f <+ "\n")
+				        \\ f <- fs] <+ recordIndent exi <+ "}")
 		where
 			padLen = maxList (map (\f -> size f.rf_name) [f1:fs])
 			pad i s = s +++ toString (repeatn (i - size s) ' ')
