@@ -17,5 +17,6 @@ instance print ClassOrGeneric
 instance print ClassRestriction
 instance print ClassContext
 instance print Type
+instance print TypeDef
 
 propagate_uniqueness :: Type -> Type

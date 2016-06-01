@@ -2,7 +2,7 @@ implementation module TypeUtil
 
 import TypeDef
 
-import StdArray, StdString, StdTuple
+import StdArray, StdOrdList, StdString, StdTuple
 
 from Data.Func import $
 import Data.List
@@ -16,8 +16,11 @@ from GenEq import generic gEq, ===
 printersperse :: a [b] -> [String] | print a & print b
 printersperse a bs = intercalate (print a) (map print bs)
 
+instance toInt Bool where toInt True = 1; toInt False = 0
+
 instance print String where print s = [s]
 instance print Int where print i = [toString i]
+instance print Char where print c = [{c}]
 
 instance print [a] | print a where print xs = [concat e \\ e <- map print xs]
 
@@ -73,6 +76,50 @@ where
 	print (Cons tv [])   = print tv
 	print (Cons tv ats)  = "(" <+ tv <+ " " <+ printersperse " " ats <+ ")"
 	print (Uniq t)       = "*" <+ t
+
+instance print TypeDef
+where
+	print {td_name,td_uniq,td_args,td_rhs}
+		= ":: " <+ if td_uniq "*" "" <+ td_name <+ " " <+
+			printersperse " " td_args <+ if (isEmpty td_args) "" " " <+
+			case td_rhs of
+				(TDRCons ext cs) = "= " <+ makeADT ext cs
+				(TDRRecord _ exi fields) = "= " <+ 
+					if (isEmpty exi) [] ("E." <+ printersperse " " exi <+ ": ") <+
+					makeRecord fields
+				(TDRSynonym t) = ":== " <+ t
+				TDRAbstract = []
+				(TDRAbstractSynonym t) = "(:== " <+ t <+ ")"
+	where
+		recordIndent = repeatn (size td_name + toInt td_uniq + 2 * length td_args + 6) ' '
+		consIndent = drop 2 recordIndent
+
+		makeRecord :: [RecordField] -> String
+		makeRecord [] = "{}"
+		makeRecord [f1:fs]
+			= concat ("{ " <+ printRf f1 <+ "\n" <+
+				concat [concat (recordIndent <+ ", " <+ printRf f <+ "\n")
+				        \\ f <- fs] <+ recordIndent <+ "}")
+		where
+			padLen = maxList (map (\f -> size f.rf_name) [f1:fs])
+			pad i s = s +++ toString (repeatn (i - size s) ' ')
+
+			printRf {rf_name,rf_type} = pad padLen rf_name <+ " :: " <+ rf_type
+
+		makeADT :: Bool [Constructor] -> String
+		makeADT True []  = " .."
+		makeADT False [] = ""
+		makeADT False [c1:cs]
+			= concat (c1 <+ "\n" <+
+				concat [concat (consIndent <+ "| " <+ c <+ "\n") \\ c <- cs])
+		makeADT True cs = concat (makeADT False cs <+ consIndent <+ "| ..")
+
+instance print Constructor
+where
+	print {cons_name,cons_args,cons_exi_vars=evars,cons_context}
+		= if (isEmpty evars) [] ("E." <+ printersperse " " evars <+ ": ") <+
+			cons_name <+ " " <+ printersperse " " cons_args <+
+			if (isEmpty cons_context) [] (" & " <+ cons_context)
 
 propagate_uniqueness :: Type -> Type
 propagate_uniqueness (Type t ts)
