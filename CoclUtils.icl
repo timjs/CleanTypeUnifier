@@ -43,7 +43,7 @@ where
 	toType (GTV tv) = 'T'.Var tv.tv_ident.id_name
 	toType (t1 --> t2) = 'T'.Func ['T'.toType t1.at_type] ('T'.toType t2.at_type) []
 	toType ((CV cv) :@: ats) = 'T'.Cons cv.tv_ident.id_name (map 'T'.toType ats)
-	toType _ = 'T'.Var "UNIMPL" //TODO
+	toType _ = 'T'.Var "unimplemented" //TODO
 
 instance toType SymbolType
 where
