@@ -83,7 +83,7 @@ where
 	argtype :: Parser Token Type
 	argtype = item TParenOpen *> type <* item TParenClose
 		<|> (item (TIdent "String") >>| pure (Type "_#Array" [Type "Char" []]))
-		<|> liftM (\t->Type t []) ident
+		<|> liftM (\t -> Type t []) ident
 		<|> liftM Var var
 		<|> liftM Uniq uniq
 		<|> liftM (\t -> Type "_#Array" [t])

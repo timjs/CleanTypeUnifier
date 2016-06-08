@@ -92,7 +92,7 @@ where
 				(TDRAbstractSynonym t) = "(:== " <+ t <+ ")"
 	where
 		indent = size td_name + toInt td_uniq + 2 * length td_args
-		recordIndent exi = repeatn (indent + 6 + if (isEmpty exi) 0 (3 + 2 * length exi)) ' '
+		recordIndent exi = repeatn (indent + 6 + if (isEmpty exi) 0 (3 + length exi + sum (map size exi))) ' '
 		consIndent = repeatn (indent + 4) ' '
 
 		makeRecord :: [TypeVar] [RecordField] -> String
