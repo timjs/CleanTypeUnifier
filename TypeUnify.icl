@@ -29,69 +29,70 @@ derive gEq ClassOrGeneric, Type
 alg1 :: [Equation] -> Maybe [TVAssignment]
 alg1 [] = Just []
 alg1 [eq=:(t1,t2):es]
-| t1 == t2 = alg1 es
-| otherwise = case (isVar t1, isVar t2) of
-	(True, _) -> if (isMember (fromVar t1) $ allVars t2) Nothing
-		(if (isMember (fromVar t1) $ flatten $ map allVars $ types es)
-			(eliminate eq es >>= \es` -> alg1 [eq:es`])
-			((\tvas -> [(fromVar t1, t2):tvas]) <$> alg1 es))
-	(False, True)  -> alg1 [(t2,t1):es]
-	(False, False) -> case (isCons t1, isCons t2) of
-		(True, False) -> if (not (isType t2) || arity t2 < arity t1) Nothing
-			(let (Cons cv ts1, Type t ts2) = (t1, t2) in
-				if (isMember cv $ allVars t2) Nothing
-					(alg1 $ es ++ makeConsReduction t1 t2))
-		(False, True) -> alg1 [(t2,t1):es]
-		_             -> reduct eq >>= \es` -> alg1 $ es` ++ es
+	| t1 == t2 = alg1 es
+alg1 [eq=:(Var v1,t2):es]
+	| isMember v1 (allVars t2) = Nothing
+	| isMember v1 (flatten $ map allVars $ types es)
+		= eliminate eq es >>= \es` -> alg1 [eq:es`]
+	= (\tvas -> [(v1,t2):tvas]) <$> alg1 es
+alg1 [eq=:(t1,Var v2):es] = alg1 [(Var v2,t1):es]
+alg1 [eq=:(Cons _ _,Cons _ _):es]
+	= reduct eq >>= \es` -> alg1 $ es` ++ es
+alg1 [eq=:(t1=:(Cons v1 ts1),t2):es]
+	| not (isType t2) || arity t2 < arity t1 = Nothing
+	| isMember v1 (allVars t2) = Nothing
+	= alg1 $ es ++ makeConsReduction t1 t2
+alg1 [eq=:(t1,t2=:(Cons _ _)):es] = alg1 [(t2,t1):es]
+alg1 [eq:es] = reduct eq >>= \es` -> alg1 $ es` ++ es
+
+makeConsReduction :: Type Type -> [Equation]
+makeConsReduction (Cons cv ts1) (Type t ts2)
+	= [(Var cv, Type t ass_vars) : [(t1,t2) \\ t1 <- ts1 & t2 <- uni_vars]]
 where
-	makeConsReduction :: Type Type -> [Equation]
-	makeConsReduction (Cons cv ts1) (Type t ts2)
-		= [(Var cv, Type t ass_vars) : [(t1,t2) \\ t1 <- ts1 & t2 <- uni_vars]]
+	(ass_vars, uni_vars) = splitAt (length ts2 - length ts1) ts2
+
+types :: ([Equation] -> [Type])
+types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
+
+reduct :: Equation -> Maybe [Equation]
+reduct (Func [] r _, t) = reduct (r, t) //Can do this because we don't care about CC
+reduct (t, Func [] r _) = reduct (t, r)
+reduct (Type t1 tvs1, Type t2 tvs2)
+	| t1 <> t2 = Nothing
+	| length tvs1 <> length tvs2 = Nothing
+	| otherwise = Just $ zip2 tvs1 tvs2
+reduct (Func is1 r1 cc1, Func is2 r2 cc2)        //TODO class context
+	| length is1 <> length is2 = Nothing
+	| otherwise = Just $ zip2 [r1:is1] [r2:is2]
+reduct (Cons v1 ts1, Cons v2 ts2)
+	// In this case, we apply term reduction on variable root function
+	// symbols. We need to check that these symbols don't occur elsewhere
+	// with different arity (as Cons *or* Var); otherwise we're good.
+	| badArity v1 ts1 || badArity v2 ts2 = Nothing
+	| length ts2 > length ts1 = reduct (Cons v2 ts2, Cons v1 ts1)
+	| length ts1 > length ts2
+		# (takeargs, dropargs) = splitAt (length ts1 - length ts2) ts1
+		= Just $ zip2 [Cons v1 takeargs:dropargs] [Var v2:ts2]
+	| otherwise = Just $ zip2 [Var v1:ts1] [Var v2:ts2]
 	where
-		(ass_vars, uni_vars) = splitAt (length ts2 - length ts1) ts2
-
-	types :: ([Equation] -> [Type])
-	types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
-
-	reduct :: Equation -> Maybe [Equation]
-	reduct (Func [] r _, t) = reduct (r, t) //Can do this because we don't care about CC
-	reduct (t, Func [] r _) = reduct (t, r)
-	reduct (Type t1 tvs1, Type t2 tvs2)
-		| t1 <> t2 = Nothing
-		| length tvs1 <> length tvs2 = Nothing
-		| otherwise = Just $ zip2 tvs1 tvs2
-	reduct (Func is1 r1 cc1, Func is2 r2 cc2)        //TODO class context
-		| length is1 <> length is2 = Nothing
-		| otherwise = Just $ zip2 [r1:is1] [r2:is2]
-	reduct (Cons v1 ts1, Cons v2 ts2)
-		// In this case, we apply term reduction on variable root function
-		// symbols. We need to check that these symbols don't occur elsewhere
-		// with different arity (as Cons *or* Var); otherwise we're good.
-		| badArity v1 ts1 || badArity v2 ts2 = Nothing
-		| length ts2 > length ts1 = reduct (Cons v2 ts2, Cons v1 ts1)
-		| length ts1 > length ts2
-			# (takeargs, dropargs) = splitAt (length ts1 - length ts2) ts1
-			= Just $ zip2 [Cons v1 takeargs:dropargs] [Var v2:ts2]
-		| otherwise = Just $ zip2 [Var v1:ts1] [Var v2:ts2]
+		badArity v ts
+		| isEmpty arities = False
+		| length (removeDup arities) > 1 = True
+		| otherwise = hd arities <> length ts
 		where
-			badArity v ts
-			| isEmpty arities = False
-			| length (removeDup arities) > 1 = True
-			| otherwise = hd arities <> length ts
-			where
-				arities = let subts = flatten $ map subtypes $ ts1++ts2 in
-					map arity $ filter (\t -> isCons` v t || t == Var v) subts
-	reduct (Uniq t1, Uniq t2) = Just [(t1,t2)]
-	reduct (Var v1, Var v2) = abort "Cannot reduct variables\n"
-	reduct _ = Nothing
+			arities = let subts = flatten $ map subtypes $ ts1++ts2 in
+				map arity $ filter (\t -> isCons` v t || t == Var v) subts
+reduct (Uniq t1, Uniq t2) = Just [(t1,t2)]
+reduct (Var v1, Var v2) = abort "Cannot reduct variables\n"
+reduct _ = Nothing
 
-	eliminate :: Equation [Equation] -> Maybe [Equation]
-	eliminate _ [] = Just []
-	eliminate (Var v, t) [(lft,rgt):es]
-		# (mbLft, mbRgt) = (assign (v,t) lft, assign (v,t) rgt)
-		# mbEqs = eliminate (Var v, t) es
-		| isNothing mbEqs || isNothing mbLft || isNothing mbRgt = Nothing
-		= Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
+eliminate :: Equation [Equation] -> Maybe [Equation]
+eliminate _ [] = Just []
+eliminate (Var v, t) [(lft,rgt):es]
+	# (mbLft, mbRgt) = (assign (v,t) lft, assign (v,t) rgt)
+	# mbEqs = eliminate (Var v, t) es
+	| isNothing mbEqs || isNothing mbLft || isNothing mbRgt = Nothing
+	= Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
 
 
 instance unify Type
