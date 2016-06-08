@@ -5,7 +5,7 @@ from StdOverloaded import class toString (toString)
 
 from Data.Maybe import ::Maybe
 
-class print a :: a -> [String]
+class print a :: Bool a -> [String] // isArg x -> string representation
 
 instance print String
 instance print Int
