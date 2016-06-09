@@ -98,34 +98,37 @@ eliminate (Var v, t) [(lft,rgt):es]
 	= Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
 
 
-instance unify Type
+prepare_unification :: !Bool !Type -> Type
+prepare_unification isleft t
+# t = propagate_uniqueness t
+# t = reduceArities t
+# t = appendToVars (if isleft "_l" "_r") t
+= t
 where
-	// This is basically a wrapper for alg1 above. However, here, type
-	// variables with the same name in the first and second type should not be
-	// considered equal (which is what happens in alg1). Therefore, we first
-	// rename all type (constructor) variables to *_1 and *_2, call alg1, and
-	// rename them back.
-	unify is t1 t2 //TODO instances ignored; class context not considered
-	# (t1, t2) = (propagate_uniqueness t1, propagate_uniqueness t2)
-	# (t1, t2) = (reduceArities t1, reduceArities t2)
-	# (t1, t2) = (appendToVars "_1" t1, appendToVars "_2" t2)
-	# mbTvs = alg1 [(t1, t2)]
-	| isNothing mbTvs = Nothing
-	# tvs = fromJust mbTvs
-	# (tvs1, tvs2) = (filter (endsWith "_1") tvs, filter (endsWith "_2") tvs)
-	# (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
-	= Just (tvs1, tvs2)
-	where
-		appendToVars :: String Type -> Type
-		appendToVars s t = fromJust $ assignAll (map rename $ allVars t) t
-		where rename v = (v, Var (v+++s))
+	appendToVars :: String Type -> Type
+	appendToVars s t = fromJust $ assignAll (map rename $ allVars t) t
+	where rename v = (v, Var (v+++s))
 
-		endsWith :: String TVAssignment -> Bool
-		endsWith n (h,_) = h % (size h - size n, size h - 1) == n
+finish_unification :: ![TVAssignment] -> Unifier
+finish_unification tvs
+# (tvs1, tvs2) = (filter (endsWith "_1") tvs, filter (endsWith "_2") tvs)
+# (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
+= (tvs1, tvs2)
+where
+	endsWith :: String TVAssignment -> Bool
+	endsWith n (h,_) = h % (size h - size n, size h - 1) == n
 
-		removeEnds :: TVAssignment -> TVAssignment
-		removeEnds (v,t) = let rm s = s % (0, size s - 3) in (rm v, fromJust $
-		                   assignAll (map (\v->(v,Var (rm v))) $ allVars t) t)
+	removeEnds :: TVAssignment -> TVAssignment
+	removeEnds (v,t) = let rm s = s % (0, size s - 3) in (rm v, fromJust $
+	                   assignAll (map (\v->(v,Var (rm v))) $ allVars t) t)
+
+// This is basically a wrapper for alg1 above. However, here, type variables
+// with the same name in the first and second type should not be considered
+// equal (which is what happens in alg1). Therefore, we first rename all type
+// (constructor) variables to *_1 and *_2, call alg1, and rename them back.
+unify :: ![Instance] !Type !Type -> Maybe [TVAssignment]
+unify is t1 t2 //TODO instances ignored; class context not considered
+	= alg1 [(t1, t2)]
 
 //-----------------------//
 // Unification utilities //

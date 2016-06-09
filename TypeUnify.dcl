@@ -4,5 +4,6 @@ import TypeDef
 
 from Data.Maybe import ::Maybe
 
-class unify a :: [Instance] a a -> Maybe Unifier
-instance unify Type
+prepare_unification :: !Bool /* True iff left */ !Type -> Type
+finish_unification :: ![TVAssignment] -> Unifier
+unify :: ![Instance] !Type !Type -> Maybe [TVAssignment]
