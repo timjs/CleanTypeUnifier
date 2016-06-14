@@ -111,7 +111,7 @@ where
 
 finish_unification :: ![TVAssignment] -> Unifier
 finish_unification tvs
-# (tvs1, tvs2) = (filter (endsWith "_1") tvs, filter (endsWith "_2") tvs)
+# (tvs1, tvs2) = (filter (endsWith "_l") tvs, filter (endsWith "_r") tvs)
 # (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
 = (tvs1, tvs2)
 where
