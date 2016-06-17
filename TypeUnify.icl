@@ -58,8 +58,8 @@ types :: ([Equation] -> [Type])
 types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
 
 reduct :: !Equation -> Maybe [Equation]
-reduct (Func [] r _, t) = reduct (r, t) //Can do this because we don't care about CC
-reduct (t, Func [] r _) = reduct (t, r)
+reduct (Func [] r _, t) = Just [(r, t)] //Can do this because we don't care about CC
+reduct (t, Func [] r _) = Just [(t, r)]
 reduct (Type t1 tvs1, Type t2 tvs2)
 	| t1 <> t2 = trace "unequal types\n" Nothing
 	| length tvs1 <> length tvs2 = trace "unequal type arg lengths\n" Nothing
