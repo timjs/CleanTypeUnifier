@@ -2,8 +2,7 @@ implementation module TypeUnify
 
 import TypeDef, TypeUtil
 
-//import StdDebug //FIXME
-trace a b :== b
+import StdOrdList
 
 from StdFunc import o, flip
 from StdMisc import abort
@@ -21,88 +20,12 @@ import Control.Monad
 
 derive gEq ClassOrGeneric, Type
 
-:: Equation :== (Type, Type)
-
-// This is an example of why you should give your functions a meaningful name.
-// This is an instance of 'Algorithm 1', described by Martelli, Montanari in
-// An Efficient Unification Algorithm, 1982, section 2. This implementation
-// selects the first from the list of equations, applies the appropriate step
-// (a through d) or proceeds to the next equation.
-// It has been modified a bit to be able to deal with constructor variables.
-alg1 :: ![Equation] -> Maybe [TVAssignment]
-alg1 [] = Just []
-alg1 [eq=:(t1,t2):es]
-	| t1 == t2 = alg1 es
-alg1 [eq=:(Var v1,t2):es]
-	| isMember v1 (allVars t2) = Nothing
-	| isMember v1 (flatten $ map allVars $ types es)
-		= eliminate eq es >>= \es` -> alg1 [eq:es`]
-	= (\tvas -> [(v1,t2):tvas]) <$> alg1 es
-alg1 [(t1,Var v2):es] = alg1 [(Var v2,t1):es]
-alg1 [eq=:(Cons _ _,Cons _ _):es]
-	= reduct eq >>= \es` -> alg1 $ es ++ es`
-alg1 [(t1=:(Cons v1 ts1),t2):es]
-	| not (isType t2) || arity t2 < arity t1 = Nothing
-	| isMember v1 (allVars t2) = Nothing
-	= alg1 $ es ++ makeConsReduction t1 t2
-alg1 [(t1,t2=:(Cons _ _)):es] = alg1 [(t2,t1):es]
-alg1 [eq:es]
-	= reduct eq >>= \es` -> alg1 $ es ++ es`
-
-makeConsReduction :: Type Type -> [Equation]
-makeConsReduction (Cons cv ts1) (Type t ts2)
-# (ass_vars, uni_vars) = splitAt (length ts2 - length ts1) ts2
-= [(Var cv, Type t ass_vars) : [(t1,t2) \\ t1 <- ts1 & t2 <- uni_vars]]
-
-types :: ([Equation] -> [Type])
-types = foldr (\(t1,t2) ts -> [t1,t2:ts]) []
-
-reduct :: !Equation -> Maybe [Equation]
-reduct (Func [] r _, t) = Just [(r, t)] //Can do this because we don't care about CC
-reduct (t, Func [] r _) = Just [(t, r)]
-reduct (Type t1 tvs1, Type t2 tvs2)
-	| t1 <> t2 = trace "unequal types\n" Nothing
-	| length tvs1 <> length tvs2 = trace "unequal type arg lengths\n" Nothing
-	= Just $ zip2 tvs1 tvs2
-reduct (Func is1 r1 cc1, Func is2 r2 cc2)        //TODO class context
-	| length is1 <> length is2 = trace "unequal func arg lengths\n" Nothing
-	= Just $ zip2 [r1:is1] [r2:is2]
-reduct (Cons v1 ts1, Cons v2 ts2)
-	// In this case, we apply term reduction on variable root function
-	// symbols. We need to check that these symbols don't occur elsewhere
-	// with different arity (as Cons *or* Var); otherwise we're good.
-	| badArity v1 ts1 || badArity v2 ts2 = trace "bad arity\n" Nothing
-	#! (len1,len2) = (length ts1, length ts2)
-	| len2 > len1 = reduct (Cons v2 ts2, Cons v1 ts1)
-	| len1 > len2
-		# (takeargs, dropargs) = splitAt (len1 - len2) ts1
-		= Just $ zip2 [Cons v1 takeargs:dropargs] [Var v2:ts2]
-	= Just $ zip2 [Var v1:ts1] [Var v2:ts2]
-	where
-		badArity v ts
-		# subts = flatten $ map subtypes $ ts1 ++ ts2
-		#! arities = map arity $ filter (\t -> isCons` v t || t == Var v) subts
-		| isEmpty arities = False
-		| length (removeDup arities) > 1 = True
-		= hd arities <> length ts
-reduct (Uniq t1, Uniq t2) = Just [(t1,t2)]
-reduct (Var v1, Var v2) = abort "Cannot reduct variables\n"
-reduct _ = trace "bad reduction\n" Nothing
-
-eliminate :: !Equation ![Equation] -> Maybe [Equation]
-eliminate _ [] = Just []
-eliminate (Var v, t) [(lft,rgt):es]
-	# (mbLft, mbRgt) = (assign (v,t) lft, assign (v,t) rgt)
-	# mbEqs = eliminate (Var v, t) es
-	| isNothing mbEqs || isNothing mbLft || isNothing mbRgt = Nothing
-	= Just [(fromJust mbLft, fromJust mbRgt) : fromJust mbEqs]
-
-
 prepare_unification :: !Bool !Type -> Type
+prepare_unification b (Func [] t _) = prepare_unification b t
 prepare_unification isleft t
 # t = propagate_uniqueness t
 # t = reduceArities t
-# t = appendToVars (if isleft "_l" "_r") t
+# t = appendToVars (if isleft "l" "r") t
 = t
 where
 	appendToVars :: String Type -> Type
@@ -111,7 +34,7 @@ where
 
 finish_unification :: ![TVAssignment] -> Unifier
 finish_unification tvs
-# (tvs1, tvs2) = (filter (endsWith "_l") tvs, filter (endsWith "_r") tvs)
+# (tvs1, tvs2) = (filter (endsWith "l") tvs, filter (endsWith "r") tvs)
 # (tvs1, tvs2) = (map removeEnds tvs1, map removeEnds tvs2)
 = (tvs1, tvs2)
 where
@@ -119,16 +42,173 @@ where
 	endsWith n (h,_) = h % (size h - size n, size h - 1) == n
 
 	removeEnds :: TVAssignment -> TVAssignment
-	removeEnds (v,t) = let rm s = s % (0, size s - 3) in (rm v, fromJust $
+	removeEnds (v,t) = let rm s = s % (0, size s - 2) in (rm v, fromJust $
 	                   assignAll (map (\v->(v,Var (rm v))) $ allVars t) t)
 
-// This is basically a wrapper for alg1 above. However, here, type variables
-// with the same name in the first and second type should not be considered
-// equal (which is what happens in alg1). Therefore, we first rename all type
-// (constructor) variables to *_1 and *_2, call alg1, and rename them back.
 unify :: ![Instance] !Type !Type -> Maybe [TVAssignment]
 unify is t1 t2 //TODO instances ignored; class context not considered
-	= alg1 [(t1, t2)]
+	= unify2 $ toMESystem t1 t2
+
+:: MultiEq = ME ![TypeVar] ![Type]
+
+:: MESystem = { solved   :: ![MultiEq]
+              , unsolved :: ![(Int, MultiEq)]
+              }
+
+toMESystem :: !Type !Type -> MESystem
+toMESystem t1 t2
+	= { solved   = []
+	  , unsolved = [(0, ME ["type"] [t1,t2])]
+	  }
+
+instance == MultiEq where (==) (ME a b) (ME c d) = a == c && b == d
+
+// Implementation of 'Algorithm 3', described by Martelli, Montanari in An
+// Efficient Unification Algorithm, 1982, section 2. It has been modified a bit
+// to be able to deal with constructor variables.
+unify2 :: !MESystem -> Maybe [TVAssignment]
+unify2 {solved,unsolved}
+# unsolved = sortBy (\(a,b) (c,d) -> a < c) unsolved
+| isEmpty unsolved     = Just $ solution solved
+# (count, me=:(ME vars types)) = hd unsolved
+| count <> 0           = Nothing // cycle
+# unsolved             = tl unsolved
+| isEmpty types
+	= unify2 {solved=[me:solved],unsolved=removeFromCounters vars unsolved}
+# cPaF                 = commonPartAndFrontier types
+| isNothing cPaF       = Nothing // clash
+# (cPart,frontier)     = fromJust cPaF
+// MultiEq reduction
+# unsolved             = updateCounters $ compactify $ 
+                         unsolved ++ [(0,f) \\ f <- frontier]
+# solved               = [ME vars [cPart]:solved]
+= unify2 {solved=solved,unsolved=unsolved}
+where
+	solution :: [MultiEq] -> [TVAssignment]
+	solution [] = []
+	solution [ME [v:vs] ts:mes]
+		= [(v,t) \\ t <- ts] ++ [(v`,Var v) \\ v` <- vs] ++ solution mes
+
+	removeFromCounters :: ![TypeVar] ![(Int,MultiEq)] -> [(Int,MultiEq)]
+	removeFromCounters vs [] = []
+	removeFromCounters vs [(i,me=:(ME _ ts)):mes]
+		= [(i - sum (map (count vs) ts),me):removeFromCounters vs mes]
+	where
+		count :: ![TypeVar] !Type -> Int
+		count vs (Var v) = if (isMember v vs) 1 0
+		count vs (Cons v ts) = if (isMember v vs) 1 0 + sum (map (count vs) ts)
+		count vs (Type _ ts) = sum $ map (count vs) ts
+		count vs (Func is r _) = sum $ map (count vs) [r:is]
+		count vs (Uniq t) = count vs t
+
+	updateCounters :: [(Int, MultiEq)] -> [(Int, MultiEq)]
+	updateCounters eqs
+		= [(sum (map (count mes) vars), me) \\ me=:(ME vars _) <- mes]
+	where
+		mes = map snd eqs
+
+		count :: [MultiEq] TypeVar -> Int
+		count mes v
+			= sum [length (filter (isVarOrCons` v) (flatten (map subtypes ts)))
+			       \\ (ME _ ts) <- mes]
+
+	compactify :: [(Int, MultiEq)] -> [(Int, MultiEq)]
+	compactify [] = []
+	compactify [(c,ME vars types):mes] = case lookup vars mes of
+		Nothing = [(c,ME vars types):compactify mes]
+		(Just me=:(c`,ME vars` types`))
+			# vars = removeDup $ vars ++ vars`
+			# types = removeDup $ types ++ types`
+			= compactify [(c+c`, ME vars types):removeMember me mes]
+	where
+		lookup :: [TypeVar] [(Int,MultiEq)] -> Maybe (Int, MultiEq)
+		lookup vs [] = Nothing
+		lookup vs [me=:(i,ME vars _):mes]
+		| isEmpty (intersect vs vars) = lookup vs mes
+		= Just me
+
+:: CommonPart :== Type
+:: Frontier :== [MultiEq]
+
+commonPartAndFrontier :: [Type] -> Maybe (CommonPart, Frontier)
+commonPartAndFrontier ts
+| isEmpty ts = Nothing
+| any isVar ts = Just (hd $ filter isVar ts, makemulteq ts)
+| all isType ts
+	# names = map (\(Type n _) -> n) ts
+	| (<>) 1 $ length $ removeDup $ names = Nothing
+	# name = hd names
+	# lengths = map (length o (\(Type _ ts) -> ts)) ts
+	| (<>) 1 $ length $ removeDup $ lengths = Nothing
+	# len = hd lengths
+	| len == 0 = Just (Type name [], [])
+	# args = map (\(Type _ ts) -> ts) ts
+	# cpafs = [commonPartAndFrontier [a!!i \\ a <- args] \\ i <- [0..len-1]]
+	| any isNothing cpafs = Nothing
+	# (cps, fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
+	= Just (Type name cps, flatten fronts)
+| all isFunc ts // TODO class context
+	# types = map (\(Func is t _) -> [t:is]) ts
+	# lengths = map length types
+	| (<>) 1 $ length $ removeDup $ lengths = Nothing
+	# len = hd lengths
+	# cpafs = [commonPartAndFrontier [t!!i \\ t <- types] \\ i <- [0..len-1]]
+	| any isNothing cpafs = Nothing
+	# ([cp:cps], fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
+	= Just (Func cps cp [], flatten fronts)
+| all isCons ts
+	# lengths = [length ts \\ (Cons _ ts) <- ts]
+	| 1 == length (removeDup lengths)
+		// All same arity, pairwise unification
+		# len = hd lengths
+		# lists = map (\(Cons v ts) -> [Var v:ts]) ts
+		# cpafs = [commonPartAndFrontier [l!!i \\ l <- lists] \\ i <- [0..len]]
+		| any isNothing cpafs = Nothing
+		# ([Var cp:cps], fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
+		= Just (Cons cp cps, flatten fronts)
+	// Different arities, curry in some arguments
+	# (minlen,maxlen) = (minList lengths, maxList lengths)
+	# maxvar = hd [v \\ (Cons v ts) <- ts | length ts == maxlen]
+	# splits = [splitAt (length ts - minlen) ts \\ (Cons v ts) <- ts]
+	# types = [if (isEmpty init) (Var v) (Cons v init) \\ (init,_) <- splits & (Cons v _) <- ts]
+	# rests = map snd splits
+	# cpafs = [commonPartAndFrontier [r!!i \\ r <- rests] \\ i <- [0..maxlen-minlen-1]]
+	| any isNothing cpafs = Nothing
+	# (cps, fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
+	# cpaf = commonPartAndFrontier types
+	| isNothing cpaf = Nothing
+	# (cp, front) = fromJust cpaf
+	| isCons cp
+		# (Cons cpv cpts) = cp
+		= Just (Cons cpv (cpts ++ cps), flatten [front:fronts])
+	# (Var v) = cp
+	= Just (Cons v cps, flatten [front:fronts])
+| all (\t -> isCons t || isType t) ts
+	# types = filter isType ts
+	# conses = filter isCons ts
+	// Unify types separately
+	# cpaft = commonPartAndFrontier types
+	| isNothing cpaft = Nothing
+	# (cpt=:(Type cptn cptts), frontt) = fromJust cpaft
+	// Unify conses separately
+	# cpafc = commonPartAndFrontier conses
+	| isNothing cpafc = Nothing
+	# (cpc, frontc) = fromJust cpafc
+	// Merge results
+	| isVar cpc = let (Var cpc`) = cpc in
+		Just (cpt, [ME [cpc`] [cpt]] ++ frontt ++ frontc)
+	# (Cons cpcv cpcts) = cpc
+	| length cpcts <> length cptts = Nothing
+	# cpafs = [commonPartAndFrontier [t,c] \\ t <- cptts & c <- cpcts]
+	| any isNothing cpafs = Nothing
+	# (cps,fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
+	| isEmpty cps = Just (Var cpcv, flatten fronts ++ frontt ++ frontc)
+	= Just (Cons cpcv cps, flatten fronts ++ [ME [cpcv] [Type cptn []]] ++ frontt ++ frontc)
+| all isUniq ts = commonPartAndFrontier (map (\(Uniq t) -> t) ts)
+| otherwise = Nothing
+where
+	makemulteq :: [Type] -> Frontier
+	makemulteq ts = let (vs,ts`) = partition isVar ts in [ME (map fromVar vs) ts`]
 
 //-----------------------//
 // Unification utilities //
@@ -138,7 +218,7 @@ unify is t1 t2 //TODO instances ignored; class context not considered
 assign :: !TVAssignment !Type -> Maybe Type
 assign va (Type s ts) = Type s <$^> map (assign va) ts
 assign va (Func ts r cc) = Func <$^> map (assign va) ts 
-		>>= (\f->f <$> assign va r) >>= (\f->pure $ f cc)
+		>>= (\f->f <$> assign va r) >>= (\f->pure $ f cc) // TODO cc
 assign (v,a) (Var v`) = pure $ if (v == v`) a (Var v`)
 assign va=:(v,Type s ts) (Cons v` ts`)
 	| v == v`   = Type s <$^> map (assign va) (ts ++ ts`)
@@ -149,7 +229,9 @@ assign va=:(v,Cons c ts) (Cons v` ts`)
 assign va=:(v,Var v`) (Cons v`` ts)
 	| v == v``  = Cons v` <$^> map (assign va) ts
 	| otherwise = Cons v`` <$^> map (assign va) ts
-assign _ (Cons _ _) = empty
+assign va=:(v,_) (Cons v` ts)
+	| v == v` = empty
+	| otherwise = Cons v` <$^> map (assign va) ts
 assign va (Uniq t) = Uniq <$> (assign va t)
 
 (<$^>) infixl 4 //:: ([a] -> b) [Maybe a] -> Maybe b

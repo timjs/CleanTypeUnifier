@@ -41,8 +41,16 @@ isCons (Cons _ _) = True; isCons _ = False
 isCons` :: TypeVar Type -> Bool
 isCons` v (Cons v` _) = v == v`; isCons` _ _ = False
 
+isVarOrCons` :: TypeVar Type -> Bool
+isVarOrCons` v (Var v`)    = v == v`
+isVarOrCons` v (Cons v` _) = v == v`
+isVarOrCons` _ _           = False
+
 isType :: Type -> Bool
 isType (Type _ _) = True; isType _ = False
+
+isFunc :: Type -> Bool
+isFunc (Func _ _ _) = True; isFunc _ = False
 
 isUniq :: Type -> Bool
 isUniq (Uniq _) = True; isUniq _ = False

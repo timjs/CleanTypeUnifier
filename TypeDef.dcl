@@ -65,7 +65,11 @@ fromVar :: Type -> TypeVar
 isCons :: Type -> Bool
 isCons` :: TypeVar Type -> Bool
 
+isVarOrCons` :: TypeVar Type -> Bool
+
 isType :: Type -> Bool
+
+isFunc :: Type -> Bool
 
 isUniq :: Type -> Bool
 
