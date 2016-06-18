@@ -36,7 +36,7 @@ where print _ Nothing = []; print b (Just x) = print b x
 instance print Kind
 where
 	print _ KindConst = ["*"]
-	print b (KindArrow ks) = parlft -- printersperse False "->" ks -- parrgt
+	print b (KindArrow ks) = parlft -- printersperse True "->" (ks ++ [KindConst]) -- parrgt
 	where (parlft,parrgt) = if b ("(",")") ("","")
 
 instance print ClassOrGeneric
