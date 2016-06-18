@@ -18,7 +18,7 @@ import Data.Maybe
 import Control.Applicative
 import Control.Monad
 
-derive gEq ClassOrGeneric, Type
+derive gEq ClassOrGeneric, Type, Kind
 
 prepare_unification :: !Bool !Type -> Type
 prepare_unification b (Func [] t _) = prepare_unification b t

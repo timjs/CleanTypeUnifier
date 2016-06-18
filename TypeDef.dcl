@@ -15,7 +15,9 @@ from Data.Maybe import :: Maybe
 
 :: ClassContext :== [ClassRestriction]
 :: ClassRestriction :== (ClassOrGeneric, Type)
-:: ClassOrGeneric = Class String | Generic //TODO generic?
+:: ClassOrGeneric = Class String | Generic String Kind
+
+:: Kind = KindConst | KindArrow [Kind]
 
 :: Instance = Instance String Type
 
@@ -74,9 +76,6 @@ isFunc :: Type -> Bool
 isUniq :: Type -> Bool
 
 arity :: Type -> Int
-
-isClass :: ClassOrGeneric -> Bool
-isClassRestriction :: (ClassRestriction -> Bool)
 
 constructorsToFunctions :: TypeDef -> [(String,Type)]
 

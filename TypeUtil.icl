@@ -33,8 +33,16 @@ where print _ xs = [concat e \\ e <- map (print False) xs]
 instance print (Maybe a) | print a
 where print _ Nothing = []; print b (Just x) = print b x
 
-instance print ClassOrGeneric where print _ (Class s) = [s]
-//TODO generic?
+instance print Kind
+where
+	print _ KindConst = ["*"]
+	print b (KindArrow ks) = parlft -- printersperse False "->" ks -- parrgt
+	where (parlft,parrgt) = if b ("(",")") ("","")
+
+instance print ClassOrGeneric
+where
+	print _ (Class s) = [s]
+	print _ (Generic n k) = n -- "{|" -- k -- "|}"
 
 instance print ClassRestriction where print _ (cog, v) = cog -- " " -- v
 
@@ -44,7 +52,7 @@ where
 	print _ crs = "| " -- printersperse False " & "
 		[printersperse False ", " (map fst gr) -- " " -- snd (hd gr) \\ gr <- grps]
 	where
-		grps = groupBy (\a b -> snd a == snd b) $ filter isClassRestriction crs
+		grps = groupBy (\a b -> snd a == snd b) crs
 
 instance print Type
 where

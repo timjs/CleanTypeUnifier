@@ -10,7 +10,7 @@ from StdFunc import o, id
 from GenEq import generic gEq, ===
 from Data.Func import $
 
-derive gEq ClassOrGeneric, Type, Instance
+derive gEq ClassOrGeneric, Type, Instance, Kind
 
 instance == Type where (==) a b = a === b
 instance == Instance where (==) a b = a === b
@@ -61,13 +61,6 @@ arity (Func is _ _) = length is
 arity (Var _) = 0
 arity (Cons _ ts) = length ts
 //TODO arity of Uniq t?
-
-isClass :: ClassOrGeneric -> Bool
-isClass (Class _) = True
-isClass _ = False
-
-isClassRestriction :: (ClassRestriction -> Bool)
-isClassRestriction = isClass o fst
 
 constructorsToFunctions :: TypeDef -> [(String,Type)]
 constructorsToFunctions {td_name,td_uniq,td_args,td_rhs=TDRCons _ conses}

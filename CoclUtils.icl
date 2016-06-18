@@ -13,12 +13,19 @@ castContext :: [TypeContext] -> 'T'.ClassContext
 castContext context
 	= [('T'.Class gds.glob_object.ds_ident.id_name,
 	    chainTypes (map 'T'.toType tc_types))
-	     \\ {tc_class=(TCClass gds),tc_types} <- context]
+	     \\ {tc_class=(TCClass gds),tc_types} <- context] ++
+	  [('T'.Generic gtc_generic.glob_object.ds_ident.id_name (kind gtc_kind),
+	    chainTypes (map 'T'.toType tc_types))
+	     \\ {tc_class=(TCGeneric {gtc_generic,gtc_kind}),tc_types} <- context]
 where
 	chainTypes :: ['T'.Type] -> 'T'.Type
 	chainTypes [('T'.Type t ts):rest] = 'T'.Type t (ts ++ rest)
 	chainTypes [('T'.Cons t ts):rest] = 'T'.Cons t (ts ++ rest)
 	chainTypes [('T'.Var v):rest] = 'T'.Cons v rest
+
+	kind :: TypeKind -> 'T'.Kind
+	kind KindConst = 'T'.KindConst
+	kind (KindArrow ks) = 'T'.KindArrow (map kind ks)
 
 instance toType ATypeVar
 where
