@@ -6,7 +6,7 @@ import StdList
 import StdTuple
 from StdString import instance == {#Char}
 import StdBool
-from StdFunc import o
+from StdFunc import o, id
 from GenEq import generic gEq, ===
 from Data.Func import $
 
@@ -68,6 +68,12 @@ isClass _ = False
 
 isClassRestriction :: (ClassRestriction -> Bool)
 isClassRestriction = isClass o fst
+
+constructorsToFunctions :: TypeDef -> [(String,Type)]
+constructorsToFunctions {td_name,td_uniq,td_args,td_rhs=TDRCons _ conses}
+	= [(c.cons_name, Func c.cons_args return c.cons_context) \\ c <- conses]
+where return = if td_uniq Uniq id $ Type td_name td_args
+constructorsToFunctions _ = []
 
 td_name :: TypeDef -> String
 td_name {td_name} = td_name

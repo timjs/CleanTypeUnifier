@@ -78,6 +78,8 @@ arity :: Type -> Int
 isClass :: ClassOrGeneric -> Bool
 isClassRestriction :: (ClassRestriction -> Bool)
 
+constructorsToFunctions :: TypeDef -> [(String,Type)]
+
 // Record wrappers; needed in CoclUtils because qualified imports don't support
 // record fields yet
 td_name :: TypeDef -> String
