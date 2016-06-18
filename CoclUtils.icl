@@ -2,30 +2,35 @@ implementation module CoclUtils
 
 import qualified Type as T
 from Type import class toType, class toTypeVar, class toTypeDef,
-	class toTypeDefRhs, class toConstructor, class toRecordField
+	class toTypeDefRhs, class toConstructor, class toRecordField,
+	::ClassContext, ::ClassRestriction, ::ClassOrGeneric, class toClassContext(..)
 
 import syntax
 import qualified syntax
 
 from StdList import map
 
-castContext :: [TypeContext] -> 'T'.ClassContext
-castContext context
-	= [('T'.Class gds.glob_object.ds_ident.id_name,
-	    chainTypes (map 'T'.toType tc_types))
-	     \\ {tc_class=(TCClass gds),tc_types} <- context] ++
-	  [('T'.Generic gtc_generic.glob_object.ds_ident.id_name (kind gtc_kind),
-	    chainTypes (map 'T'.toType tc_types))
-	     \\ {tc_class=(TCGeneric {gtc_generic,gtc_kind}),tc_types} <- context]
+instance toClassContext [TypeContext]
 where
-	chainTypes :: ['T'.Type] -> 'T'.Type
-	chainTypes [('T'.Type t ts):rest] = 'T'.Type t (ts ++ rest)
-	chainTypes [('T'.Cons t ts):rest] = 'T'.Cons t (ts ++ rest)
-	chainTypes [('T'.Var v):rest] = 'T'.Cons v rest
+	toClassContext context
+		= [('T'.Class gds.glob_object.ds_ident.id_name,
+		    chainTypes (map 'T'.toType tc_types))
+		     \\ {tc_class=(TCClass gds),tc_types} <- context] ++
+		  [('T'.Generic gtc_generic.glob_object.ds_ident.id_name (kind gtc_kind),
+		    chainTypes (map 'T'.toType tc_types))
+		     \\ {tc_class=(TCGeneric {gtc_generic,gtc_kind}),tc_types} <- context]
+	where
+		chainTypes :: ['T'.Type] -> 'T'.Type
+		chainTypes [('T'.Type t ts):rest] = 'T'.Type t (ts ++ rest)
+		chainTypes [('T'.Cons t ts):rest] = 'T'.Cons t (ts ++ rest)
+		chainTypes [('T'.Var v):rest] = 'T'.Cons v rest
 
-	kind :: TypeKind -> 'T'.Kind
-	kind KindConst = 'T'.KindConst
-	kind (KindArrow ks) = 'T'.KindArrow (map kind ks)
+		kind :: TypeKind -> 'T'.Kind
+		kind KindConst = 'T'.KindConst
+		kind (KindArrow ks) = 'T'.KindArrow (map kind ks)
+
+instance toClassContext TypeContext
+where toClassContext tc = toClassContext [tc]
 
 instance toType ATypeVar
 where
@@ -55,7 +60,7 @@ where
 instance toType SymbolType
 where
 	toType {st_args,st_result,st_context}
-		= 'T'.Func (map 'T'.toType st_args) ('T'.toType st_result) (castContext st_context)
+		= 'T'.Func (map 'T'.toType st_args) ('T'.toType st_result) (toClassContext st_context)
 
 instance toTypeVar TypeVar where toTypeVar {tv_ident} = tv_ident.id_name
 
@@ -90,7 +95,7 @@ where
 		= 'T'.constructor pc_cons_ident.id_name
 			(map 'T'.toType pc_arg_types)
 			(map (\t -> 'T'.toTypeVar t.atv_variable) pc_exi_vars)
-			(castContext pc_context)
+			(toClassContext pc_context)
 
 instance toRecordField ParsedSelector
 where

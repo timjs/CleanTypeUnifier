@@ -53,6 +53,8 @@ instance == Type, Instance
 class toType a :: a -> Type
 class toTypeVar a :: a -> TypeVar
 
+class toClassContext a :: a -> ClassContext
+
 class toTypeDef a :: a -> TypeDef
 class toTypeDefRhs a :: a -> TypeDefRhs
 class toConstructor a :: a -> Constructor
