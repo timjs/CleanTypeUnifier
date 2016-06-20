@@ -69,10 +69,12 @@ where
 			| vs == [Type "Char" []]
 			             = ["String"]
 			| otherwise  = "{#" -- vs -- "}"
-		| s == "_Array"  = "{" -- hd vs -- "}"
+		| s == "_Array"  = "{" -- vs -- "}"
+		| s == "_!Array" = "{!" -- vs -- "}"
 		// Tuples
 		| s % (0,5) == "_Tuple"
-		                 = "(" -- printersperse False ", " vs -- ")"
+			# extra = toInt (s % (6, size s - 1)) - length vs - 1
+			= "(" -- printersperse False ", " vs -- repeatn extra ',' -- ")"
 		// Other predefined types
 		| s == "_Unit"   = ["()"]
 		| s.[0] == '_'   = [s % (1, size s - 1)]
