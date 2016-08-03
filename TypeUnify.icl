@@ -247,7 +247,7 @@ assignAll :== flip $ foldM (flip assign)
 // Make all functions arity 1 by transforming a b -> c to a -> b -> c
 reduceArities :: !Type -> Type
 reduceArities (Func ts r cc)
-	| length ts > 1 = Func [hd ts] (reduceArities $ Func (tl ts) r cc) cc
+	| length ts > 1 = Func [reduceArities $ hd ts] (reduceArities $ Func (tl ts) r cc) cc
 	| otherwise = Func (map reduceArities ts) (reduceArities r) cc
 reduceArities (Type s ts) = Type s $ map reduceArities ts
 reduceArities (Cons v ts) = Cons v $ map reduceArities ts
