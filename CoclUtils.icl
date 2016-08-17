@@ -23,7 +23,8 @@ where
 		chainTypes :: ['T'.Type] -> 'T'.Type
 		chainTypes [('T'.Type t ts):rest] = 'T'.Type t (ts ++ rest)
 		chainTypes [('T'.Cons t ts):rest] = 'T'.Cons t (ts ++ rest)
-		chainTypes [('T'.Var v):rest] = 'T'.Cons v rest
+		chainTypes [('T'.Var v)]          = 'T'.Var v
+		chainTypes [('T'.Var v):rest]     = 'T'.Cons v rest
 
 		kind :: TypeKind -> 'T'.Kind
 		kind KindConst = 'T'.KindConst
