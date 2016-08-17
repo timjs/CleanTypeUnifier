@@ -54,7 +54,7 @@ where
 	toType (TB bt) = 'T'.Type (toString bt) []
 	toType (TV tv) = 'T'.Var tv.tv_ident.id_name
 	toType (GTV tv) = 'T'.Var tv.tv_ident.id_name
-	toType (t1 --> t2) = 'T'.Func ['T'.toType t1.at_type] ('T'.toType t2.at_type) []
+	toType (t1 --> t2) = 'T'.Func ['T'.toType t1] ('T'.toType t2) []
 	toType ((CV cv) :@: ats) = 'T'.Cons cv.tv_ident.id_name (map 'T'.toType ats)
 	toType _ = 'T'.Var "unimplemented" //TODO
 
