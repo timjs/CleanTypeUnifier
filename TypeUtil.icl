@@ -3,6 +3,7 @@ implementation module TypeUtil
 import TypeDef
 
 import StdArray, StdOrdList, StdString, StdTuple
+from StdFunc import o
 
 from Data.Func import $
 import Data.List
@@ -87,7 +88,7 @@ where
 	print ia (Func ts r [])
 	                       = parens ia (printersperse True " " ts -- " -> " -- r)
 	print _ (Func ts r cc) = (Func ts r []) -- " " -- cc
-	print ia (Cons tv [])   = print ia tv
+	print ia (Cons tv [])  = print ia tv
 	print _ (Cons tv ats)  = "(" -- tv -- " " -- printersperse True " " ats -- ")"
 	print _ (Uniq t)       = "*" -+ t
 
@@ -109,7 +110,7 @@ where
 				TDRAbstract = []
 				(TDRAbstractSynonym t) = "(:== " -- t -- ")"
 	where
-		indent = size td_name + toInt td_uniq + 2 * length td_args
+		indent = size td_name + toInt td_uniq + length td_args + sum (map (size o concat o print True) td_args)
 		recordIndent exi = repeatn (indent + 6 + if (isEmpty exi) 0 (3 + length exi + sum (map size exi))) ' '
 		consIndent = repeatn (indent + 4) ' '
 
@@ -126,8 +127,7 @@ where
 			printRf {rf_name,rf_type} = pad padLen rf_name -- " :: " -- rf_type
 
 		makeADT :: Bool [Constructor] -> String
-		makeADT True []  = " .."
-		makeADT False [] = ""
+		makeADT exten [] = if exten " .." ""
 		makeADT False [c1:cs]
 			= concat (c1 -- "\n" --
 				concat [concat (consIndent -- "| " -- c -- "\n") \\ c <- cs])
