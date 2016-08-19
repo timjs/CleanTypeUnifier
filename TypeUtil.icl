@@ -74,8 +74,9 @@ where
 		| s == "_!Array" = "{!" -- vs -- "}"
 		// Tuples
 		| s % (0,5) == "_Tuple"
-			# extra = toInt (s % (6, size s - 1)) - length vs - 1
-			= "(" -- printersperse False ", " vs -- repeatn extra ',' -- ")"
+			# n = toInt (s % (6, size s - 1))
+			| n > length vs = "((" -- repeatn (n-1) ',' -- ") " -- printersperse True " " vs -- ")"
+			| otherwise     = "(" -- printersperse False ", " vs -- ")"
 		// Other predefined types
 		| s == "_Unit"   = ["()"]
 		| s.[0] == '_'   = [s % (1, size s - 1)]
