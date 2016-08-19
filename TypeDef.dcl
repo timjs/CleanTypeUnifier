@@ -8,6 +8,7 @@ from Data.Maybe import :: Maybe
         | Var TypeVar                    // Type variable
         | Cons TypeVar [Type]            // Constructor variable + arguments
         | Uniq Type                      // Unique type
+        | Forall [Type] Type ClassContext // Universally quantified variables
 
 :: TypeVar :== String
 :: TVAssignment :== (TypeVar, Type)
@@ -62,6 +63,7 @@ class toRecordField a :: a -> RecordField
 
 subtypes :: Type -> [Type]
 allVars :: Type -> [TypeVar]
+allUniversalVars :: Type -> [TypeVar]
 
 isVar :: Type -> Bool
 fromVar :: Type -> TypeVar
@@ -76,6 +78,9 @@ isType :: Type -> Bool
 isFunc :: Type -> Bool
 
 isUniq :: Type -> Bool
+
+isForall :: Type -> Bool
+fromForall :: Type -> Type
 
 arity :: Type -> Int
 

@@ -56,6 +56,7 @@ where
 	toType (GTV tv) = 'T'.Var tv.tv_ident.id_name
 	toType (t1 --> t2) = 'T'.Func ['T'.toType t1] ('T'.toType t2) []
 	toType ((CV cv) :@: ats) = 'T'.Cons cv.tv_ident.id_name (map 'T'.toType ats)
+	toType (TFAC tvas t cc) = 'T'.Forall (map 'T'.toType tvas) ('T'.toType t) ('T'.toClassContext cc)
 	toType _ = 'T'.Var "unimplemented" //TODO
 
 instance toType SymbolType

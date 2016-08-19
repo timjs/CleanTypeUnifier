@@ -20,7 +20,8 @@ subtypes t=:(Type s ts) = removeDup [t : flatten (map subtypes ts)]
 subtypes t=:(Func is r cc) = removeDup [t : flatten (map subtypes [r:is])]
 subtypes t=:(Cons c ts) = removeDup [t : flatten (map subtypes ts)]
 subtypes t=:(Uniq t`) = removeDup [t : subtypes t`]
-subtypes t = [t]
+subtypes t=:(Forall vs t` cc) = removeDup [t : flatten (map subtypes [t`:vs])]
+subtypes t=:(Var _) = [t]
 
 // All the type and constructor variables in a type
 allVars :: Type -> [TypeVar]
@@ -28,6 +29,14 @@ allVars t = map varName $ filter (\t -> isCons t || isVar t) $ subtypes t
 where
 	varName :: Type -> TypeVar
 	varName (Cons v _) = v; varName (Var v) = v
+
+allUniversalVars :: Type -> [TypeVar]
+allUniversalVars (Forall vs t cc) = removeDup (flatten (map allVars vs) ++ allUniversalVars t)
+allUniversalVars (Type _ ts) = removeDup (flatten (map allUniversalVars ts))
+allUniversalVars (Func is r _) = removeDup (flatten (map allUniversalVars [r:is]))
+allUniversalVars (Cons _ ts) = removeDup (flatten (map allUniversalVars ts))
+allUniversalVars (Uniq t) = allUniversalVars t
+allUniversalVars (Var _) = []
 
 isVar :: Type -> Bool
 isVar (Var _) = True; isVar _ = False
@@ -55,12 +64,18 @@ isFunc (Func _ _ _) = True; isFunc _ = False
 isUniq :: Type -> Bool
 isUniq (Uniq _) = True; isUniq _ = False
 
+isForall :: Type -> Bool
+isForall (Forall _ _ _) = True; isForall _ = False
+
+fromForall :: Type -> Type
+fromForall (Forall _ t _) = t
+
 arity :: Type -> Int
 arity (Type _ ts) = length ts
 arity (Func is _ _) = length is
 arity (Var _) = 0
 arity (Cons _ ts) = length ts
-//TODO arity of Uniq t?
+//TODO arity of Uniq / Forall?
 
 constructorsToFunctions :: TypeDef -> [(String,Type)]
 constructorsToFunctions {td_name,td_uniq,td_args,td_rhs=TDRCons _ conses}

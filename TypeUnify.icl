@@ -55,6 +55,9 @@ unify is t1 t2 //TODO instances ignored; class context not considered
               , unsolved :: ![(Int, MultiEq)]
               }
 
+allAssignments :: MultiEq -> [TVAssignment]
+allAssignments (ME vs ts) = [(v,t) \\ v <- vs, t <- ts]
+
 toMESystem :: !Type !Type -> MESystem
 toMESystem t1 t2
 	= { solved   = []
@@ -65,7 +68,7 @@ instance == MultiEq where (==) (ME a b) (ME c d) = a == c && b == d
 
 // Implementation of 'Algorithm 3', described by Martelli, Montanari in An
 // Efficient Unification Algorithm, 1982, section 2. It has been modified a bit
-// to be able to deal with constructor variables.
+// to be able to deal with constructor variables and universal quantifiers.
 unify2 :: !MESystem -> Maybe [TVAssignment]
 unify2 {solved,unsolved}
 # unsolved = sortBy (\(a,b) (c,d) -> a < c) unsolved
@@ -78,6 +81,12 @@ unify2 {solved,unsolved}
 # cPaF                 = commonPartAndFrontier types
 | isNothing cPaF       = Nothing // clash
 # (cPart,frontier)     = fromJust cPaF
+// Check universal quantifiers
+# univars              = flatten $ map allUniversalVars types
+| any
+	(\(v,t) -> not (isVar t) && isMember v univars)
+	(flatten (map allAssignments frontier))
+                       = Nothing // Universally quantified var was assigned
 // MultiEq reduction
 # unsolved             = updateCounters $ compactify $ 
                          unsolved ++ [(0,f) \\ f <- frontier]
@@ -133,6 +142,7 @@ where
 commonPartAndFrontier :: [Type] -> Maybe (CommonPart, Frontier)
 commonPartAndFrontier ts
 | isEmpty ts = Nothing
+| any isForall ts = commonPartAndFrontier $ map (\t -> if (isForall t) (fromForall t) t) ts
 | any isVar ts = Just (hd $ filter isVar ts, makemulteq ts)
 | all isType ts
 	# names = map (\(Type n _) -> n) ts
@@ -233,6 +243,11 @@ assign va=:(v,_) (Cons v` ts)
 	| v == v` = empty
 	| otherwise = Cons v` <$^> map (assign va) ts
 assign va (Uniq t) = Uniq <$> (assign va t)
+assign va=:(v,Var v`) (Forall tvs t cc)
+	= Forall <$^> map (assign va) tvs >>= (\f -> flip f cc <$> assign va t)
+assign va=:(v,_) (Forall tvs t cc)
+	| isMember (Var v) tvs = empty
+	| otherwise = flip (Forall tvs) cc <$> assign va t
 
 (<$^>) infixl 4 //:: ([a] -> b) [Maybe a] -> Maybe b
 (<$^>) f mbs :== ifM (all isJust mbs) $ f $ map fromJust mbs
@@ -253,3 +268,4 @@ reduceArities (Type s ts) = Type s $ map reduceArities ts
 reduceArities (Cons v ts) = Cons v $ map reduceArities ts
 reduceArities (Uniq t) = Uniq $ reduceArities t
 reduceArities (Var v) = Var v
+reduceArities (Forall tvs t cc) = Forall tvs (reduceArities t) cc
