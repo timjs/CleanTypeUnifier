@@ -92,6 +92,8 @@ where
 	print _ (Uniq t)       = "*" -+ t
 	print _ (Forall tvs t []) = "(A." -- printersperse True " " tvs -- ": " -- t -- ")"
 	print _ (Forall tvs t cc) = "(A." -- printersperse True " " tvs -- ": " -- t -- " " -- cc -- ")"
+	print _ (Arrow Nothing)  = ["(->)"]
+	print _ (Arrow (Just t)) = "((->) " -+ t +- ")"
 
 parens :: Bool [String] -> [String]
 parens False ss = ss

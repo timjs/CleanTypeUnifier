@@ -4,6 +4,7 @@ import qualified Type as T
 from Type import class toType, class toTypeVar, class toTypeDef,
 	class toTypeDefRhs, class toConstructor, class toRecordField,
 	::ClassContext, ::ClassRestriction, ::ClassOrGeneric, class toClassContext(..)
+from Data.Maybe import :: Maybe (..)
 
 import syntax
 import qualified syntax
@@ -57,7 +58,9 @@ where
 	toType (t1 --> t2) = 'T'.Func ['T'.toType t1] ('T'.toType t2) []
 	toType ((CV cv) :@: ats) = 'T'.Cons cv.tv_ident.id_name (map 'T'.toType ats)
 	toType (TFAC tvas t cc) = 'T'.Forall (map 'T'.toType tvas) ('T'.toType t) ('T'.toClassContext cc)
-	toType _ = 'T'.Var "unimplemented" //TODO
+	toType TArrow = 'T'.Arrow Nothing
+	toType (TArrow1 t) = 'T'.Arrow (Just ('T'.toType t))
+	toType _ = abort "CoclUtils: unimplemented Type\n"
 
 instance toType SymbolType
 where

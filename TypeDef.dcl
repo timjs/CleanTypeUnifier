@@ -9,6 +9,7 @@ from Data.Maybe import :: Maybe
         | Cons TypeVar [Type]            // Constructor variable + arguments
         | Uniq Type                      // Unique type
         | Forall [Type] Type ClassContext // Universally quantified variables
+        | Arrow (Maybe Type)             // (->) and ((->) t)
 
 :: TypeVar :== String
 :: TVAssignment :== (TypeVar, Type)
