@@ -83,6 +83,12 @@ constructorsToFunctions {td_name,td_uniq,td_args,td_rhs=TDRCons _ conses}
 where return = if td_uniq Uniq id $ Type td_name td_args
 constructorsToFunctions _ = []
 
+recordsToFunctions :: TypeDef -> [(String,Type)]
+recordsToFunctions {td_name,td_uniq,td_args,td_rhs=TDRRecord _ _ fields}
+	= [(f.rf_name, Func [arg] f.rf_type []) \\ f <- fields]
+where arg = if td_uniq Uniq id $ Type td_name td_args
+recordsToFunctions _ = []
+
 td_name :: TypeDef -> String
 td_name {td_name} = td_name
 

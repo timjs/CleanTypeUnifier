@@ -85,6 +85,7 @@ fromForall :: Type -> Type
 arity :: Type -> Int
 
 constructorsToFunctions :: TypeDef -> [(String,Type)]
+recordsToFunctions :: TypeDef -> [(String,Type)]
 
 // Record wrappers; needed in CoclUtils because qualified imports don't support
 // record fields yet
