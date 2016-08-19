@@ -32,6 +32,7 @@ instance == Token where == a b = a === b
 		 | TUnboxed                     // #
 		 | TStrict                      // !
 		 | TColon                       // :
+		 | TUniversalQuantifier         // A.
 
 		 | TParenOpen | TParenClose     // ( )
 		 | TBrackOpen | TBrackClose     // [ ]
@@ -45,18 +46,20 @@ tokenize = tkz []
 where
 	tkz :: [Token] [Char] -> Maybe [Token]
 	tkz tks [] = Just tks
-	tkz tks ['-':'>':cs] = tkz (tks ++ [TArrow]) cs
-	tkz tks [',':cs] = tkz (tks ++ [TComma]) cs
-	tkz tks ['*':cs] = tkz (tks ++ [TUnique]) cs
-	tkz tks ['.':cs] = tkz (tks ++ [TAnonymous]) cs
-	tkz tks ['#':cs] = tkz (tks ++ [TUnboxed]) cs
-	tkz tks ['!':cs] = tkz (tks ++ [TStrict]) cs
-	tkz tks ['(':cs] = tkz (tks ++ [TParenOpen]) cs
-	tkz tks [')':cs] = tkz (tks ++ [TParenClose]) cs
-	tkz tks ['[':cs] = tkz (tks ++ [TBrackOpen]) cs
-	tkz tks [']':cs] = tkz (tks ++ [TBrackClose]) cs
-	tkz tks ['{':cs] = tkz (tks ++ [TBraceOpen]) cs
-	tkz tks ['}':cs] = tkz (tks ++ [TBraceClose]) cs
+	tkz tks ['-':'>':cs] = tkz (tks ++ [TArrow])               cs
+	tkz tks [',':cs]     = tkz (tks ++ [TComma])               cs
+	tkz tks ['*':cs]     = tkz (tks ++ [TUnique])              cs
+	tkz tks ['.':cs]     = tkz (tks ++ [TAnonymous])           cs
+	tkz tks ['#':cs]     = tkz (tks ++ [TUnboxed])             cs
+	tkz tks ['!':cs]     = tkz (tks ++ [TStrict])              cs
+	tkz tks ['(':cs]     = tkz (tks ++ [TParenOpen])           cs
+	tkz tks [')':cs]     = tkz (tks ++ [TParenClose])          cs
+	tkz tks ['[':cs]     = tkz (tks ++ [TBrackOpen])           cs
+	tkz tks [']':cs]     = tkz (tks ++ [TBrackClose])          cs
+	tkz tks ['{':cs]     = tkz (tks ++ [TBraceOpen])           cs
+	tkz tks ['}':cs]     = tkz (tks ++ [TBraceClose])          cs
+	tkz tks ['A':'.':cs] = tkz (tks ++ [TUniversalQuantifier]) cs
+	tkz tks [':':cs]     = tkz (tks ++ [TColon])               cs
 	tkz tks [c:cs]
 	| isSpace c = tkz tks cs
 	| isUpper c = let (id, cs`) = span isIdentChar cs in
@@ -78,6 +81,10 @@ type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for n
 	<|> liftM2 Cons cons (some argtype)
 	<|> (item (TIdent "String") >>| pure (Type "_#Array" [Type "Char" []]))
 	<|> liftM2 Type ident (many argtype)
+	<|> liftM3 Forall
+		(item TUniversalQuantifier *> some argtype <* item TColon)
+		type
+		(pure []) // No CC for now
 	<|> argtype
 where
 	argtype :: Parser Token Type
@@ -122,4 +129,3 @@ parseType cs
 = case fst $ runParser type (fromJust mbTokens) of
 		(Left _) -> Nothing
 		(Right t) -> Just t
-
