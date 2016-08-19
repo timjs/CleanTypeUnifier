@@ -142,7 +142,8 @@ where
 commonPartAndFrontier :: [Type] -> Maybe (CommonPart, Frontier)
 commonPartAndFrontier ts
 | isEmpty ts = Nothing
-| any isForall ts = commonPartAndFrontier $ map (\t -> if (isForall t) (fromForall t) t) ts
+| any isForall ts // TODO class context
+	= commonPartAndFrontier $ map (\t -> if (isForall t) (fromForall t) t) ts
 | any isVar ts = Just (hd $ filter isVar ts, makemulteq ts)
 | all isType ts
 	# names = map (\(Type n _) -> n) ts

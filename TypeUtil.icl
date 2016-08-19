@@ -150,4 +150,6 @@ propagate_uniqueness (Func is r cc)
 propagate_uniqueness (Cons v ts)
 	# ts = map propagate_uniqueness ts
 	= if (any isUniq ts) (Uniq (Cons v ts)) (Cons v ts)
+propagate_uniqueness (Forall vs t cc)
+	= Forall vs (propagate_uniqueness t) cc
 propagate_uniqueness t = t
