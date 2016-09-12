@@ -75,6 +75,7 @@ where
 		// Tuples
 		| s % (0,5) == "_Tuple"
 			# n = toInt (s % (6, size s - 1))
+			| isEmpty vs = "(" -- repeatn (n-1) ',' -- ")"
 			| n > length vs = "((" -- repeatn (n-1) ',' -- ") " -- printersperse True " " vs -- ")"
 			| otherwise     = "(" -- printersperse False ", " vs -- ")"
 		// Other predefined types
