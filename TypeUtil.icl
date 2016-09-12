@@ -90,7 +90,7 @@ where
 	print ia (Func ts r []) = parens ia (printersperse True " " ts -- " -> " -- r)
 	print _ (Func ts r cc) = (Func ts r []) -- " " -- cc
 	print ia (Cons tv [])  = print ia tv
-	print _ (Cons tv ats)  = "(" -- tv -- " " -- printersperse True " " ats -- ")"
+	print ia (Cons tv ats) = parens ia (tv -- " " -- printersperse True " " ats)
 	print _ (Uniq t)       = "*" -+ t
 	print _ (Forall tvs t []) = "(A." -- printersperse True " " tvs -- ": " -- t -- ")"
 	print _ (Forall tvs t cc) = "(A." -- printersperse True " " tvs -- ": " -- t -- " " -- cc -- ")"
