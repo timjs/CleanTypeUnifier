@@ -183,7 +183,7 @@ commonPartAndFrontier ts
 	# splits = [splitAt (length ts - minlen) ts \\ (Cons v ts) <- ts]
 	# types = [if (isEmpty init) (Var v) (Cons v init) \\ (init,_) <- splits & (Cons v _) <- ts]
 	# rests = map snd splits
-	# cpafs = [commonPartAndFrontier [r!!i \\ r <- rests] \\ i <- [0..maxlen-minlen-1]]
+	# cpafs = [commonPartAndFrontier [r!!i \\ r <- rests] \\ i <- [0..minlen - 1]]
 	| any isNothing cpafs = Nothing
 	# (cps, fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
 	# cpaf = commonPartAndFrontier types
