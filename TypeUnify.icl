@@ -215,7 +215,9 @@ commonPartAndFrontier ts
 	# (cps,fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
 	| isEmpty cps = Just (Var cpcv, flatten fronts ++ frontt ++ frontc)
 	= Just (Cons cpcv cps, flatten fronts ++ [ME [cpcv] [Type cptn []]] ++ frontt ++ frontc)
-| all isUniq ts = commonPartAndFrontier (map (\(Uniq t) -> t) ts)
+| all isUniq ts
+	= (\(cpaf,front) -> (Uniq cpaf,front))
+		<$> commonPartAndFrontier (map (\(Uniq t) -> t) ts)
 | otherwise = Nothing
 where
 	makemulteq :: [Type] -> Frontier
