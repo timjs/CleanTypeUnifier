@@ -50,7 +50,7 @@ instance print ClassRestriction where print _ (cog, v) = cog -- " " -- v
 instance print ClassContext
 where
 	print _ [] = []
-	print _ crs = "| " -- printersperse False " & "
+	print _ crs = printersperse False " & "
 		[printersperse False ", " (map fst gr) -- " " -- snd (hd gr) \\ gr <- grps]
 	where
 		grps = groupBy (\a b -> snd a == snd b) crs
