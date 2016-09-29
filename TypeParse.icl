@@ -88,7 +88,8 @@ type = liftM3 Func (some argtype) (item TArrow *> type) (pure []) // no CC for n
 	<|> argtype
 where
 	argtype :: Parser Token Type
-	argtype = item TParenOpen *> type <* item TParenClose
+	argtype = (item TParenOpen *> item TParenClose >>| pure (Type "_Unit" []))
+		<|> item TParenOpen *> type <* item TParenClose
 		<|> (item (TIdent "String") >>| pure (Type "_#Array" [Type "Char" []]))
 		<|> liftM (\t -> Type t []) ident
 		<|> liftM Var var
