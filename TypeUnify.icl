@@ -209,12 +209,14 @@ commonPartAndFrontier ts
 	| isVar cpc = let (Var cpc`) = cpc in
 		Just (cpt, [ME [cpc`] [cpt]] ++ frontt ++ frontc)
 	# (Cons cpcv cpcts) = cpc
-	| length cpcts <> length cptts = Nothing
-	# cpafs = [commonPartAndFrontier [t,c] \\ t <- cptts & c <- cpcts]
+	| length cpcts > length cptts = Nothing
+	# (cptts_curry, cptts_unify) = splitAt (length cptts - length cpcts) cptts
+	# cpafs = [commonPartAndFrontier [t,c] \\ t <- cptts_unify & c <- cpcts]
 	| any isNothing cpafs = Nothing
 	# (cps,fronts) = let cfs = map fromJust cpafs in (map fst cfs, map snd cfs)
+	# cps = cptts_curry ++ cps
 	| isEmpty cps = Just (Var cpcv, flatten fronts ++ frontt ++ frontc)
-	= Just (Cons cpcv cps, flatten fronts ++ [ME [cpcv] [Type cptn []]] ++ frontt ++ frontc)
+	= Just (Cons cpcv cps, flatten fronts ++ [ME [cpcv] [Type cptn cptts_curry]] ++ frontt ++ frontc)
 | all isUniq ts
 	= (\(cpaf,front) -> (Uniq cpaf,front))
 		<$> commonPartAndFrontier (map (\(Uniq t) -> t) ts)
