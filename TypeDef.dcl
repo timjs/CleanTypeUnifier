@@ -68,6 +68,7 @@ allUniversalVars :: Type -> [TypeVar]
 
 isVar :: Type -> Bool
 fromVar :: Type -> TypeVar
+fromVarLenient :: Type -> TypeVar // Also accepts Cons tv .. and Uniq (Var tv)
 
 isCons :: Type -> Bool
 isCons` :: TypeVar Type -> Bool

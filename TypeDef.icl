@@ -44,6 +44,11 @@ isVar (Var _) = True; isVar _ = False
 fromVar :: Type -> TypeVar
 fromVar (Var v) = v
 
+fromVarLenient :: Type -> TypeVar
+fromVarLenient (Var v) = v
+fromVarLenient (Cons v _) = v
+fromVarLenient (Uniq (Var v)) = v
+
 isCons :: Type -> Bool
 isCons (Cons _ _) = True; isCons _ = False
 

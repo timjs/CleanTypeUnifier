@@ -260,10 +260,6 @@ assign va=:(v,_) (Forall tvs t cc)
 //ifM :: Bool a -> m a | Alternative m
 ifM b x :== if b (pure x) empty
 
-// Apply a list of TVAssignments in the same manner as assign to a Type
-//assignAll :: ([TVAssignment] Type -> Maybe Type)
-assignAll :== flip $ foldM (flip assign)
-
 // Make all functions arity 1 by transforming a b -> c to a -> b -> c
 reduceArities :: !Type -> Type
 reduceArities (Func ts r cc)
