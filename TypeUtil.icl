@@ -66,10 +66,7 @@ where
 		| s == "_#List"  = "[#" -- vs -- "]"
 		| s == "_#List!" = "[#" -- vs -- "!]"
 		// Arrays
-		| s == "_#Array"
-			| vs == [Type "Char" []]
-			             = ["String"]
-			| otherwise  = "{#" -- vs -- "}"
+		| s == "_#Array" = "{#" -- vs -- "}"
 		| s == "_Array"  = "{" -- vs -- "}"
 		| s == "_!Array" = "{!" -- vs -- "}"
 		// Tuples
