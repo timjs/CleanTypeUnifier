@@ -81,10 +81,10 @@ eof = Parser \i -> case i of
 	_	= (Left $ Error "", i)
 
 satisfy :: (a -> Bool) -> Parser a a
-satisfy f = top >>= \r -> if (f r) (return r) fail
+satisfy f = top >>= \r -> if (f r) (pure r) fail
 
 check :: (a -> Bool) -> Parser a a
-check f = peek >>= \r -> if (f r) (return r) fail
+check f = peek >>= \r -> if (f r) (pure r) fail
 
 item :: a -> Parser a a | Eq a
 item a  = satisfy ((==)a)
