@@ -127,6 +127,6 @@ parseType :: [Char] -> Maybe Type
 parseType cs
 # mbTokens = tokenize cs
 | isNothing mbTokens = Nothing
-= case fst $ runParser type (fromJust mbTokens) of
-		(Left _) -> Nothing
-		(Right t) -> Just t
+= case runParser type (fromJust mbTokens) of
+	(Right t, []) -> Just t
+	_             -> Nothing
