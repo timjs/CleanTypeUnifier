@@ -137,10 +137,16 @@ where
 
 instance print Constructor
 where
-	print _ {cons_name,cons_args,cons_exi_vars=evars,cons_context}
+	print _ {cons_name,cons_args,cons_exi_vars=evars,cons_context,cons_priority}
 		= if (isEmpty evars) [] ("E." -- printersperse False " " evars -- ": ") --
-			cons_name -- " " -- printersperse True " " cons_args --
+			cons_name -- " " -- cons_priority -- " " -- printersperse True " " cons_args --
 			if (isEmpty cons_context) [] (" & " -- cons_context)
+
+instance print Priority
+where
+	print _ (LeftAssoc i)  = "infixl " -- i
+	print _ (RightAssoc i) = "infixr " -- i
+	print _ (NoAssoc i)    = "infix " -- i
 
 propagate_uniqueness :: Type -> Type
 propagate_uniqueness (Type t ts)

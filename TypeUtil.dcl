@@ -18,5 +18,6 @@ instance print ClassRestriction
 instance print ClassContext
 instance print Type
 instance print TypeDef
+instance print Priority
 
 propagate_uniqueness :: Type -> Type

@@ -9,6 +9,7 @@ import StdBool
 from StdFunc import o, id
 from GenEq import generic gEq, ===
 from Data.Func import $
+import Data.Maybe
 
 derive gEq ClassOrGeneric, Type, Instance, Kind
 
@@ -82,9 +83,9 @@ arity (Var _) = 0
 arity (Cons _ ts) = length ts
 //TODO arity of Uniq / Forall?
 
-constructorsToFunctions :: TypeDef -> [(String,Type)]
+constructorsToFunctions :: TypeDef -> [(String,Type,Maybe Priority)]
 constructorsToFunctions {td_name,td_uniq,td_args,td_rhs=TDRCons _ conses}
-	= [(c.cons_name, Func c.cons_args return c.cons_context) \\ c <- conses]
+	= [(c.cons_name, Func c.cons_args return c.cons_context, c.cons_priority) \\ c <- conses]
 where return = if td_uniq Uniq id $ Type td_name td_args
 constructorsToFunctions _ = []
 
@@ -101,9 +102,9 @@ typedef :: String Bool [Type] TypeDefRhs -> TypeDef
 typedef name uniq args rhs
 	= {td_name=name, td_uniq=uniq, td_args=args, td_rhs=rhs}
 
-constructor :: String [Type] [TypeVar] ClassContext -> Constructor
-constructor name args exi_vars cc
-	= {cons_name=name, cons_args=args, cons_exi_vars=exi_vars, cons_context=cc}
+constructor :: String [Type] [TypeVar] ClassContext (Maybe Priority) -> Constructor
+constructor name args exi_vars cc pri
+	= {cons_name=name, cons_args=args, cons_exi_vars=exi_vars, cons_context=cc, cons_priority=pri}
 
 recordfield :: String Type -> RecordField
 recordfield selector type = {rf_name=selector, rf_type=type}

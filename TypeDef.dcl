@@ -44,7 +44,10 @@ from Data.Maybe import :: Maybe
                  , cons_args     :: [Type]
                  , cons_exi_vars :: [TypeVar]
                  , cons_context  :: ClassContext
+                 , cons_priority :: Maybe Priority
                  }
+
+:: Priority = LeftAssoc Int | RightAssoc Int | NoAssoc Int
 
 :: RecordField = { rf_name :: String
                  , rf_type :: Type
@@ -86,12 +89,12 @@ fromForall :: Type -> Type
 
 arity :: Type -> Int
 
-constructorsToFunctions :: TypeDef -> [(String,Type)]
+constructorsToFunctions :: TypeDef -> [(String,Type,Maybe Priority)]
 recordsToFunctions :: TypeDef -> [(String,Type)]
 
 // Record wrappers; needed in CoclUtils because qualified imports don't support
 // record fields yet
 td_name :: TypeDef -> String
 typedef :: String Bool [Type] TypeDefRhs -> TypeDef
-constructor :: String [Type] [TypeVar] ClassContext -> Constructor
+constructor :: String [Type] [TypeVar] ClassContext (Maybe Priority) -> Constructor
 recordfield :: String Type -> RecordField

@@ -96,11 +96,18 @@ where
 
 instance toConstructor ParsedConstructor
 where
-	toConstructor {pc_cons_ident,pc_arg_types,pc_exi_vars,pc_context}
+	toConstructor {pc_cons_ident,pc_arg_types,pc_exi_vars,pc_context,pc_cons_prio}
 		= 'T'.constructor pc_cons_ident.id_name
 			(map 'T'.toType pc_arg_types)
 			(map (\t -> 'T'.toTypeVar t.atv_variable) pc_exi_vars)
 			(toClassContext pc_context)
+			(toPriority pc_cons_prio)
+	where
+		toPriority :: Priority -> Maybe 'T'.Priority
+		toPriority NoPrio              = Nothing
+		toPriority (Prio LeftAssoc i)  = Just ('T'.LeftAssoc i)
+		toPriority (Prio RightAssoc i) = Just ('T'.RightAssoc i)
+		toPriority (Prio NoAssoc i)    = Just ('T'.NoAssoc i)
 
 instance toRecordField ParsedSelector
 where
