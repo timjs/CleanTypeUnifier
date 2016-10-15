@@ -101,13 +101,14 @@ where
 			(map 'T'.toType pc_arg_types)
 			(map (\t -> 'T'.toTypeVar t.atv_variable) pc_exi_vars)
 			(toClassContext pc_context)
-			(toPriority pc_cons_prio)
-	where
-		toPriority :: Priority -> Maybe 'T'.Priority
-		toPriority NoPrio              = Nothing
-		toPriority (Prio LeftAssoc i)  = Just ('T'.LeftAssoc i)
-		toPriority (Prio RightAssoc i) = Just ('T'.RightAssoc i)
-		toPriority (Prio NoAssoc i)    = Just ('T'.NoAssoc i)
+			('T'.toMaybePriority pc_cons_prio)
+
+instance 'T'.toMaybePriority Priority
+where
+	toMaybePriority NoPrio              = Nothing
+	toMaybePriority (Prio LeftAssoc i)  = Just ('T'.LeftAssoc i)
+	toMaybePriority (Prio RightAssoc i) = Just ('T'.RightAssoc i)
+	toMaybePriority (Prio NoAssoc i)    = Just ('T'.NoAssoc i)
 
 instance toRecordField ParsedSelector
 where

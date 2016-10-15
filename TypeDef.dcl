@@ -63,6 +63,7 @@ class toClassContext a :: a -> ClassContext
 class toTypeDef a :: a -> TypeDef
 class toTypeDefRhs a :: a -> TypeDefRhs
 class toConstructor a :: a -> Constructor
+class toMaybePriority a :: a -> Maybe Priority
 class toRecordField a :: a -> RecordField
 
 subtypes :: Type -> [Type]
