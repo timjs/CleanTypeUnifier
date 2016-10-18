@@ -81,16 +81,16 @@ unify2 {solved,unsolved}
 # cPaF                 = commonPartAndFrontier types
 | isNothing cPaF       = Nothing // clash
 # (cPart,frontier)     = fromJust cPaF
+// MultiEq reduction
+# unsolved             = updateCounters $ compactify $
+                         unsolved ++ [(0,f) \\ f <- frontier]
+# solved               = [ME vars [cPart]:solved]
 // Check universal quantifiers
 # univars              = flatten $ map allUniversalVars types
 | any
 	(\(v,t) -> not (isVar t) && isMember v univars)
-	(flatten (map allAssignments frontier))
+	(flatten (map (allAssignments o snd) unsolved))
                        = Nothing // Universally quantified var was assigned
-// MultiEq reduction
-# unsolved             = updateCounters $ compactify $ 
-                         unsolved ++ [(0,f) \\ f <- frontier]
-# solved               = [ME vars [cPart]:solved]
 = unify2 {solved=solved,unsolved=unsolved}
 where
 	solution :: [MultiEq] -> [TVAssignment]
@@ -253,6 +253,9 @@ assign va=:(v,Var v`) (Forall tvs t cc)
 assign va=:(v,_) (Forall tvs t cc)
 	| isMember (Var v) tvs = empty
 	| otherwise = flip (Forall tvs) cc <$> assign va t
+
+// assignAll :: ([TVAssignment] Type -> Maybe Type)
+assignAll :== flip (foldM (flip assign))
 
 (<$^>) infixl 4 //:: ([a] -> b) [Maybe a] -> Maybe b
 (<$^>) f mbs :== ifM (all isJust mbs) $ f $ map fromJust mbs
