@@ -60,8 +60,8 @@ where
 	print isArg (Type s vs)
 		// Lists
 		| s == "_List"   = "[" -- vs -- "]"
-		| s == "_!List"  = "[!" -- vs -- "]"
-		| s == "_List!"  = "[" -- vs -- "!]"
+		| s == "_!List"  = if (isEmpty vs) ["[! ]"] ("[!" -- vs -- "]")
+		| s == "_List!"  = if (isEmpty vs) ["[ !]"] ("[" -- vs -- "!]")
 		| s == "_!List!" = "[!" -- vs -- "!]"
 		| s == "_#List"  = "[#" -- vs -- "]"
 		| s == "_#List!" = "[#" -- vs -- "!]"
