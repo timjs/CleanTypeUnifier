@@ -254,9 +254,6 @@ assign va=:(v,_) (Forall tvs t cc)
 	| isMember (Var v) tvs = empty
 	| otherwise = flip (Forall tvs) cc <$> assign va t
 
-// assignAll :: ([TVAssignment] Type -> Maybe Type)
-assignAll :== flip (foldM (flip assign))
-
 (<$^>) infixl 4 //:: ([a] -> b) [Maybe a] -> Maybe b
 (<$^>) f mbs :== ifM (all isJust mbs) $ f $ map fromJust mbs
 
